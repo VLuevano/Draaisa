@@ -1,4 +1,5 @@
 com\draaisa\model\Ruta.class
+com\draaisa\view\ProductosModule.class
 com\draaisa\database\DatabaseConnection.class
 com\draaisa\model\Usuario.class
 com\draaisa\view\LoginScreen.class

@@ -14,7 +14,7 @@ public class UsuarioController {
     public static boolean iniciarSesion(String nombreUsuario, String contrasenaUsuario) {
         String query = "SELECT * FROM usuario WHERE nombreusuario = ? AND contrasenausuario = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, nombreUsuario);
             stmt.setString(2, contrasenaUsuario);
@@ -31,7 +31,7 @@ public class UsuarioController {
     public static boolean cambiarContrasena(int idUsuario, String nuevaContrasena) {
         String query = "UPDATE usuario SET contrasenausuario = ? WHERE idusuario = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, nuevaContrasena);
             stmt.setInt(2, idUsuario);
@@ -45,13 +45,14 @@ public class UsuarioController {
 
     // Método para registrar un nuevo usuario
     public static boolean registrarUsuario(Usuario usuario) {
-        String query = "INSERT INTO usuario (idusuario, nombreusuario, contrasenausuario) VALUES (?, ?, ?)";
+        String query = "INSERT INTO usuario (idusuario, nombreusuario, contrasenausuario, permiso) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, usuario.getIdUsuario());
             stmt.setString(2, usuario.getNombreUsuario());
             stmt.setString(3, usuario.getContrasenaUsuario());
+            stmt.setBoolean(4, usuario.isPermiso()); // Añadir el valor del permiso
 
             return stmt.executeUpdate() > 0; // Retorna true si se agregó un usuario
         } catch (SQLException | IOException e) {
@@ -64,7 +65,7 @@ public class UsuarioController {
     public static boolean eliminarUsuario(int idUsuario) {
         String query = "DELETE FROM usuario WHERE idusuario = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, idUsuario);
 
@@ -81,14 +82,15 @@ public class UsuarioController {
         String query = "SELECT * FROM usuario";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+                PreparedStatement stmt = conn.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 Usuario usuario = new Usuario(
                         rs.getInt("idusuario"),
                         rs.getString("nombreusuario"),
-                        rs.getString("contrasenausuario")
+                        rs.getString("contrasenausuario"),
+                        rs.getBoolean("permiso") // Leer el valor del permiso
                 );
                 usuarios.add(usuario);
             }
@@ -97,4 +99,5 @@ public class UsuarioController {
         }
         return usuarios;
     }
+
 }

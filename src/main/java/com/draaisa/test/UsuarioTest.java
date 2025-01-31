@@ -61,7 +61,11 @@ public class UsuarioTest {
         System.out.print("Ingrese contraseña: ");
         String contrasena = scanner.nextLine();
 
-        Usuario usuario = new Usuario(id, nombre, contrasena);
+        System.out.print("¿El usuario tiene permiso para agregar otros usuarios? (true/false): ");
+        boolean permiso = scanner.nextBoolean();
+        scanner.nextLine(); // Limpiar buffer
+
+        Usuario usuario = new Usuario(id, nombre, contrasena, permiso);
         boolean registrado = UsuarioController.registrarUsuario(usuario);
 
         if (registrado) {
@@ -126,7 +130,7 @@ public class UsuarioTest {
         } else {
             System.out.println("\nLista de usuarios:");
             for (Usuario usuario : usuarios) {
-                System.out.println("ID: " + usuario.getIdUsuario() + " | Nombre: " + usuario.getNombreUsuario());
+                System.out.println("ID: " + usuario.getIdUsuario() + " | Nombre: " + usuario.getNombreUsuario() + " | Permiso: " + usuario.isPermiso());
             }
         }
     }

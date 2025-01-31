@@ -4,12 +4,14 @@ public class Usuario {
     private int idUsuario;
     private String nombreUsuario;
     private String contrasenaUsuario;
+    private boolean permiso; // Nuevo campo
 
     // Constructor
-    public Usuario(int idUsuario, String nombreUsuario, String contrasenaUsuario) {
+    public Usuario(int idUsuario, String nombreUsuario, String contrasenaUsuario, boolean permiso) {
         this.idUsuario = idUsuario;
         this.nombreUsuario = nombreUsuario;
         this.contrasenaUsuario = contrasenaUsuario;
+        this.permiso = permiso; // Inicializar el campo permiso
     }
 
     // Getters y Setters
@@ -35,5 +37,13 @@ public class Usuario {
 
     public void setContrasenaUsuario(String contrasenaUsuario) {
         this.contrasenaUsuario = contrasenaUsuario;
+    }
+
+    public boolean isPermiso() {
+        return permiso;
+    }
+
+    public void setPermiso(boolean permiso) {
+        this.permiso = permiso;
     }
 }
