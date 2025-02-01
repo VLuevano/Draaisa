@@ -100,4 +100,22 @@ public class UsuarioController {
         return usuarios;
     }
 
+    // Método para verificar si un usuario tiene permiso de administrador
+    public static boolean tienePermiso(String nombreUsuario) {
+        String query = "SELECT permiso FROM usuario WHERE nombreusuario = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, nombreUsuario);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getBoolean("permiso");
+            }
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }

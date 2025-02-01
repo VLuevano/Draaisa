@@ -3,6 +3,9 @@ package com.draaisa.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 public class Proveedor {
     private int idProveedor;
     private String nombreProv;
@@ -21,6 +24,13 @@ public class Proveedor {
     private String curp;
     private boolean esPersonaFisica;
     private List<Categoria> categorias;
+
+    private StringProperty rfcProveedorProperty;
+    private StringProperty cpProveedorProperty;
+    private StringProperty noExtProvProveedorProperty;
+    private StringProperty noIntProvProveedorProperty;
+    private StringProperty telefonoProvProveedorProperty;
+    private StringProperty correoProvProveedorProperty;
 
     public Proveedor(int idProveedor, String nombreProv, int cpProveedor, int noExtProv, int noIntProv,
             String rfcProveedor, String municipio, String estado, String calle, String colonia, String ciudad,
@@ -42,6 +52,12 @@ public class Proveedor {
         this.curp = curp;
         this.esPersonaFisica = esPersonaFisica;
         this.categorias = new ArrayList<>();
+        this.rfcProveedorProperty = new SimpleStringProperty(rfcProveedor);
+        this.cpProveedorProperty = new SimpleStringProperty(String.valueOf(cpProveedor));
+        this.noExtProvProveedorProperty = new SimpleStringProperty(String.valueOf(noExtProv));
+        this.noIntProvProveedorProperty = new SimpleStringProperty(String.valueOf(noIntProv));
+        this.telefonoProvProveedorProperty = new SimpleStringProperty(telefonoProv);
+        this.correoProvProveedorProperty = new SimpleStringProperty(correoProv);
     }
 
     public int getIdProveedor() {
@@ -178,6 +194,30 @@ public class Proveedor {
 
     public void setCategorias(List<Categoria> categorias) {
         this.categorias = categorias;
+    }
+
+    public StringProperty rfcProveedorProperty() {
+        return rfcProveedorProperty; // Método para acceder a la propiedad
+    }
+
+    public StringProperty cpProveedorProperty() {
+        return cpProveedorProperty; // Método para acceder a la propiedad
+    }
+
+    public StringProperty noExtProvProveedorProperty() {
+        return noExtProvProveedorProperty; // Método para acceder a la propiedad
+    }
+
+    public StringProperty noIntProvProveedorProperty() {
+        return noIntProvProveedorProperty; // Método para acceder a la propiedad
+    }
+
+    public StringProperty telefonoProvProveedorProperty() {
+        return telefonoProvProveedorProperty; // Método para acceder a la propiedad
+    }
+
+    public StringProperty correoProvProveedorProperty() {
+        return correoProvProveedorProperty; // Método para acceder a la propiedad
     }
 
 }

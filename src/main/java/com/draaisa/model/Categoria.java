@@ -11,7 +11,7 @@ public class Categoria {
         this.descripcionCategoria = descripcionCategoria;
     }
 
-    // Getters and Setters
+    // Getters y setters
     public int getIdCategoria() {
         return idCategoria;
     }
@@ -35,5 +35,4 @@ public class Categoria {
     public void setDescripcionCategoria(String descripcionCategoria) {
         this.descripcionCategoria = descripcionCategoria;
     }
-
 }

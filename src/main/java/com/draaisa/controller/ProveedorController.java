@@ -116,14 +116,41 @@ public class ProveedorController {
     // Método para buscar proveedores con filtros
     public List<Proveedor> buscarProveedores(String filtro) {
         List<Proveedor> proveedores = new ArrayList<>();
-        String sql = "SELECT * FROM proveedor WHERE nombreprov ILIKE ? OR estado ILIKE ? OR municipio ILIKE ?";
+        String[] filtros = filtro.split(","); // Separar por comas
+    
+        // Crear condiciones dinámicas
+        StringBuilder sql = new StringBuilder("SELECT * FROM proveedor WHERE ");
+        List<String> condiciones = new ArrayList<>();
+    
+        // Si el filtro tiene ID, agregar condición
+        for (String palabra : filtros) {
+            if (palabra.trim().matches("\\d+")) { // Filtrar por ID
+                condiciones.add("idProveedor = ?");
+            } else {
+                // Filtrar por nombre, estado, municipio
+                condiciones.add("nombreprov ILIKE ? OR estado ILIKE ? OR municipio ILIKE ?");
+            }
+        }
+    
+        // Unir todas las condiciones
+        sql.append(String.join(" OR ", condiciones));
+    
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, "%" + filtro + "%");
-            stmt.setString(2, "%" + filtro + "%");
-            stmt.setString(3, "%" + filtro + "%");
-
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+    
+            int index = 1;
+            for (String palabra : filtros) {
+                if (palabra.trim().matches("\\d+")) {
+                    // Si es un número, se filtra por ID
+                    stmt.setInt(index++, Integer.parseInt(palabra.trim()));
+                } else {
+                    // Si no es un número, se filtra por nombre, estado y municipio
+                    stmt.setString(index++, "%" + palabra.trim() + "%");
+                    stmt.setString(index++, "%" + palabra.trim() + "%");
+                    stmt.setString(index++, "%" + palabra.trim() + "%");
+                }
+            }
+    
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Proveedor proveedor = new Proveedor(
@@ -149,8 +176,10 @@ public class ProveedorController {
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
+    
         return proveedores;
     }
+    
 
     // Método para eliminar proveedor
     public void eliminarProveedor(int idProveedor) {
