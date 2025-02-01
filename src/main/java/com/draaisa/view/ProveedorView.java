@@ -1,6 +1,7 @@
 package com.draaisa.view;
 
 import com.draaisa.controller.ProveedorController;
+import com.draaisa.database.DatabaseConnection;
 import com.draaisa.model.Categoria;
 import com.draaisa.model.Proveedor;
 import javafx.application.Application;
@@ -11,6 +12,11 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,13 +43,10 @@ public class ProveedorView extends Application {
 
         Menu menu = new Menu("Opciones");
         MenuItem registroItem = new MenuItem("Registrar Proveedor");
-        MenuItem modificarItem = new MenuItem("Modificar Proveedor");
-        MenuItem buscarItem = new MenuItem("Buscar Proveedores");
-        MenuItem eliminarItem = new MenuItem("Eliminar Proveedor");
-        MenuItem consultarItem = new MenuItem("Consultar Todos Proveedores");
+        MenuItem consultarItem = new MenuItem("Consultar Proveedores");
         MenuItem salirItem = new MenuItem("Salir");
 
-        menu.getItems().addAll(registroItem, modificarItem, buscarItem, eliminarItem, consultarItem, salirItem);
+        menu.getItems().addAll(registroItem, consultarItem, salirItem);
         menuBar.getMenus().add(menu);
 
         // Crear panel principal
@@ -52,10 +55,13 @@ public class ProveedorView extends Application {
         vbox.setPadding(new Insets(20));
 
         // Funcionalidades del menú
-        registroItem.setOnAction(e -> showRegistroForm(vbox));
-        modificarItem.setOnAction(e -> showModificarForm(vbox));
-        buscarItem.setOnAction(e -> showBuscarForm(vbox));
-        eliminarItem.setOnAction(e -> showEliminarForm(vbox));
+        registroItem.setOnAction(e -> {
+            try {
+                showRegistroForm(vbox);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        });
         consultarItem.setOnAction(e -> showConsultarForm(vbox));
         salirItem.setOnAction(e -> mostrarMenuPrincipal(primaryStage));
 
@@ -71,8 +77,8 @@ public class ProveedorView extends Application {
         primaryStage.show();
     }
 
-    // Mostrar formulario para registrar proveedor con validaciones
-    private void showRegistroForm(VBox vbox) {
+    //Registrar proveedores
+    private void showRegistroForm(VBox vbox) throws IOException {
         vbox.getChildren().clear();
 
         // Título del apartado
@@ -124,6 +130,15 @@ public class ProveedorView extends Application {
 
         CheckBox personaFisicaCheck = new CheckBox("Es persona física");
 
+        // Crear ComboBox para seleccionar categoría
+        ComboBox<String> categoriaComboBox = new ComboBox<>();
+        cargarCategorias(categoriaComboBox); // Cargar categorías desde la base de datos
+        categoriaComboBox.setPromptText("Selecciona categoría");
+
+        // Crear botón para registrar nueva categoría
+        Button nuevaCategoriaButton = new Button("Registrar Nueva Categoría");
+        nuevaCategoriaButton.setOnAction(e -> showRegistrarCategoriaForm(vbox, categoriaComboBox));
+
         // Crear botón para registrar
         Button registrarButton = new Button("Registrar");
         registrarButton.setOnAction(e -> {
@@ -142,11 +157,12 @@ public class ProveedorView extends Application {
             String correo = correoField.getText().trim();
             String curp = curpField.getText().trim();
             boolean esPersonaFisica = personaFisicaCheck.isSelected();
+            String categoriaSeleccionada = categoriaComboBox.getValue();
 
             // Validaciones
             if (nombre.isEmpty() || rfc.isEmpty() || telefono.isEmpty() || cp.isEmpty() || calle.isEmpty()
                     || colonia.isEmpty() || ciudad.isEmpty() || municipio.isEmpty() || estado.isEmpty()
-                    || pais.isEmpty() || correo.isEmpty() || curp.isEmpty()) {
+                    || pais.isEmpty() || correo.isEmpty() || curp.isEmpty() || categoriaSeleccionada == null) {
                 showAlert(Alert.AlertType.ERROR, "Todos los campos son obligatorios.");
                 return;
             }
@@ -184,21 +200,19 @@ public class ProveedorView extends Application {
             Proveedor proveedor = new Proveedor(0, nombre, cpInt, noExtInt, noIntInt, rfc, municipio, estado, calle,
                     colonia, ciudad, pais, telefono, correo, curp, esPersonaFisica);
             List<Categoria> categorias = new ArrayList<>();
-            // Agregar categorías de ejemplo
-            categorias.add(new Categoria(0, "Categoría1", "Descripción"));
+            // Agregar categoría seleccionada
+            categorias.add(new Categoria(0, categoriaSeleccionada, "Descripción"));
 
             controller.registrarProveedor(proveedor, categorias);
             showAlert(Alert.AlertType.INFORMATION, "Proveedor registrado con éxito.");
         });
 
-        // Crear un contenedor con scroll para ajustar el tamaño y permitir que se vea
-        // todo el formulario
         ScrollPane scrollPane = new ScrollPane();
         VBox formContainer = new VBox(10);
         formContainer.getChildren().addAll(
                 titleLabel, nombreField, rfcField, telefonoField, cpField, noExtField, noIntField, calleField,
                 coloniaField, ciudadField, municipioField, estadoField, paisField, correoField, curpField,
-                personaFisicaCheck, registrarButton);
+                personaFisicaCheck, categoriaComboBox, nuevaCategoriaButton, registrarButton);
 
         scrollPane.setContent(formContainer);
         scrollPane.setFitToHeight(true); // Ajusta la altura al contenido
@@ -213,93 +227,95 @@ public class ProveedorView extends Application {
         vbox.getChildren().add(scrollPane);
     }
 
-    // Método para mostrar alertas
+    // Método para cargar las categorías desde la base de datos
+    private void cargarCategorias(ComboBox<String> categoriaComboBox) throws IOException {
+        categoriaComboBox.getItems().clear(); // Limpiar los items antes de agregar nuevos
+
+        String sql = "SELECT nombreCategoria FROM categoria"; // Consulta para obtener categorías
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                categoriaComboBox.getItems().add(rs.getString("nombreCategoria"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error al cargar categorías.");
+        }
+    }
+
+    // Método para mostrar alerta
     private void showAlert(Alert.AlertType alertType, String message) {
         Alert alert = new Alert(alertType, message);
         alert.show();
     }
 
-    // Mostrar formulario para modificar proveedor
-    private void showModificarForm(VBox vbox) {
-        vbox.getChildren().clear();
+    // Método para mostrar formulario de nueva categoría
+    private void showRegistrarCategoriaForm(VBox vbox, ComboBox<String> categoriaComboBox) {
+        Stage newStage = new Stage();
+        newStage.setTitle("Registrar Nueva Categoría");
 
-        // Crear campos de texto
-        TextField idField = new TextField();
-        idField.setPromptText("ID del proveedor a modificar");
-        TextField nombreField = new TextField();
-        nombreField.setPromptText("Nuevo nombre del proveedor");
-        TextField telefonoField = new TextField();
-        telefonoField.setPromptText("Nuevo teléfono");
+        // Crear campo de texto para el nombre de la categoría
+        TextField categoriaField = new TextField();
+        categoriaField.setPromptText("Nombre de la categoría");
 
-        // Crear botón para modificar
-        Button modificarButton = new Button("Modificar");
-        modificarButton.setOnAction(e -> {
-            int idProveedor = Integer.parseInt(idField.getText());
-            String nombre = nombreField.getText();
-            String telefono = telefonoField.getText();
+        // Crear campo de texto para la descripción de la categoría
+        TextField descripcionField = new TextField();
+        descripcionField.setPromptText("Descripción de la categoría");
 
-            Proveedor proveedor = new Proveedor(idProveedor, nombre, 0, 0, 0, "", "", "", "", "", "", "", telefono, "",
-                    "", false);
-            controller.modificarProveedor(proveedor);
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Proveedor modificado con éxito.");
-            alert.show();
-        });
+        // Crear botón para registrar la categoría
+        Button registrarCategoriaButton = new Button("Registrar");
+        registrarCategoriaButton.setOnAction(e -> {
+            String categoria = categoriaField.getText().trim();
+            String descripcion = descripcionField.getText().trim();
 
-        // Agregar elementos al panel
-        vbox.getChildren().addAll(idField, nombreField, telefonoField, modificarButton);
-    }
+            // Validar que el nombre y la descripción no estén vacíos
+            if (categoria.isEmpty() || descripcion.isEmpty()) {
+                showAlert(Alert.AlertType.ERROR, "Nombre y descripción de la categoría son obligatorios.");
+                return;
+            }
 
-    // Mostrar formulario para buscar proveedores
-    private void showBuscarForm(VBox vbox) {
-        vbox.getChildren().clear();
+            // Lógica para registrar la nueva categoría en la base de datos
+            String sql = "INSERT INTO categoria (nombrecategoria, desccategoria) VALUES (?, ?)";
+            try (Connection conn = DatabaseConnection.getConnection();
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        // Crear campo de búsqueda
-        TextField filtroField = new TextField();
-        filtroField.setPromptText("Introduce un filtro de búsqueda");
+                stmt.setString(1, categoria);
+                stmt.setString(2, descripcion);
+                stmt.executeUpdate();
 
-        // Crear botón para buscar
-        Button buscarButton = new Button("Buscar");
-        buscarButton.setOnAction(e -> {
-            String filtro = filtroField.getText();
-            List<Proveedor> proveedoresEncontrados = controller.buscarProveedores(filtro);
-            if (proveedoresEncontrados.isEmpty()) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "No se encontraron proveedores.");
-                alert.show();
-            } else {
-                StringBuilder resultados = new StringBuilder("Proveedores encontrados:\n");
-                for (Proveedor p : proveedoresEncontrados) {
-                    resultados.append(p.getNombreProv()).append("\n");
-                }
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, resultados.toString());
-                alert.show();
+                // Actualizar el ComboBox con la nueva categoría
+                cargarCategorias(categoriaComboBox);
+
+                showAlert(Alert.AlertType.INFORMATION, "Categoría registrada con éxito.");
+                newStage.close();
+
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Error al registrar la categoría.");
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         });
 
-        // Agregar elementos al panel
-        vbox.getChildren().addAll(filtroField, buscarButton);
+        // Contenedor para los campos y el botón
+        VBox newFormContainer = new VBox(10);
+        newFormContainer.setPadding(new Insets(20)); // Añadir margen entre los elementos y los bordes
+        newFormContainer.getChildren().addAll(
+                new Label("Registrar Nueva Categoría"),
+                categoriaField,
+                descripcionField,
+                registrarCategoriaButton);
+
+        // Crear la escena con el contenedor y mostrar la ventana
+        Scene newScene = new Scene(newFormContainer, 300, 200);
+        newStage.setScene(newScene);
+        newStage.show();
     }
 
-    // Mostrar formulario para eliminar proveedor
-    private void showEliminarForm(VBox vbox) {
-        vbox.getChildren().clear();
-
-        // Crear campo para el ID
-        TextField idField = new TextField();
-        idField.setPromptText("ID del proveedor a eliminar");
-
-        // Crear botón para eliminar
-        Button eliminarButton = new Button("Eliminar");
-        eliminarButton.setOnAction(e -> {
-            int idProveedor = Integer.parseInt(idField.getText());
-            controller.eliminarProveedor(idProveedor);
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Proveedor eliminado con éxito.");
-            alert.show();
-        });
-
-        // Agregar elementos al panel
-        vbox.getChildren().addAll(idField, eliminarButton);
-    }
-
+    //Consultar provedores
     private void showConsultarForm(VBox vbox) {
         vbox.getChildren().clear();
 
@@ -373,32 +389,32 @@ public class ProveedorView extends Application {
         filtroField.textProperty().addListener((observable, oldValue, newValue) -> {
             // Limpiar la lista de proveedores filtrados
             List<Proveedor> proveedoresFiltrados = new ArrayList<>();
-        
+
             // Dividir el texto de búsqueda en palabras clave separadas por comas
             String[] palabras = newValue.split(",");
-            
+
             // Recorrer cada proveedor y verificar si coincide con todas las palabras clave
             for (Proveedor proveedor : proveedores) {
                 boolean coincide = true;
-        
+
                 // Comprobar cada palabra clave
                 for (String palabra : palabras) {
-                    palabra = palabra.trim().toLowerCase();  // Eliminar espacios y pasar a minúsculas
+                    palabra = palabra.trim().toLowerCase(); // Eliminar espacios y pasar a minúsculas
                     if (!String.valueOf(proveedor.getIdProveedor()).contains(palabra) &&
-                        !proveedor.getNombreProv().toLowerCase().contains(palabra) &&
-                        !proveedor.getEstado().toLowerCase().contains(palabra) &&
-                        !proveedor.getMunicipio().toLowerCase().contains(palabra)) {
+                            !proveedor.getNombreProv().toLowerCase().contains(palabra) &&
+                            !proveedor.getEstado().toLowerCase().contains(palabra) &&
+                            !proveedor.getMunicipio().toLowerCase().contains(palabra)) {
                         coincide = false; // Si no coincide con algún filtro, romper el bucle
                         break;
                     }
                 }
-        
+
                 // Si todas las palabras clave coinciden, añadir el proveedor
                 if (coincide) {
                     proveedoresFiltrados.add(proveedor);
                 }
             }
-        
+
             // Actualizar la tabla con los proveedores filtrados
             tableView.getItems().setAll(proveedoresFiltrados);
         });

@@ -11,7 +11,7 @@ import java.util.List;
 
 public class ProveedorController {
 
-    // Método para registrar proveedor desde formulario
+    // Método para registrar proveedor desde formulario con múltiples categorías
     public void registrarProveedor(Proveedor proveedor, List<Categoria> categorias) {
         String sqlProveedor = "INSERT INTO proveedor (nombreprov, cpProveedor, noExtProv, noIntProv, rfcProveedor, municipio, estado, calle, colonia, ciudad, pais, telefonoProv, correoProv, curpproveedor, pfisicaproveedor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idProveedor";
 
@@ -42,8 +42,8 @@ public class ProveedorController {
             }
 
             for (Categoria categoria : categorias) {
-                int idCategoria = obtenerOCrearCategoria(categoria);
-                asociarProveedorConCategoria(idProveedor, idCategoria);
+                int idCategoria = obtenerOCrearCategoria(categoria, conn);
+                asociarProveedorConCategoria(idProveedor, idCategoria, conn);
             }
 
             System.out.println("Proveedor registrado exitosamente.");
@@ -54,23 +54,20 @@ public class ProveedorController {
         }
     }
 
-    // Método para obtener o registrar una categoría
-    private int obtenerOCrearCategoria(Categoria categoria) throws SQLException, IOException {
+    // Método optimizado para obtener o crear una categoría
+    private int obtenerOCrearCategoria(Categoria categoria, Connection conn) throws SQLException {
         String sqlObtenerId = "SELECT idCategoria FROM categoria WHERE nombreCategoria = ?";
-        String sqlInsertCategoria = "INSERT INTO categoria (nombrecategoria, desccategoria) VALUES (?, ?) ON CONFLICT (nombrecategoria) DO NOTHING RETURNING idcategoria";
-    
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmtObtenerId = conn.prepareStatement(sqlObtenerId);
-             PreparedStatement stmtInsertCategoria = conn.prepareStatement(sqlInsertCategoria)) {
-    
-            // Verificar si la categoría ya existe
+        String sqlInsertCategoria = "INSERT INTO categoria (nombrecategoria, desccategoria) VALUES (?, ?) RETURNING idcategoria";
+
+        try (PreparedStatement stmtObtenerId = conn.prepareStatement(sqlObtenerId)) {
             stmtObtenerId.setString(1, categoria.getNombreCategoria());
             ResultSet rs = stmtObtenerId.executeQuery();
             if (rs.next()) {
                 return rs.getInt("idCategoria");
             }
-    
-            // Si no existe, insertarla
+        }
+
+        try (PreparedStatement stmtInsertCategoria = conn.prepareStatement(sqlInsertCategoria)) {
             stmtInsertCategoria.setString(1, categoria.getNombreCategoria());
             stmtInsertCategoria.setString(2, categoria.getDescripcionCategoria());
             ResultSet generatedKeys = stmtInsertCategoria.executeQuery();
@@ -78,14 +75,14 @@ public class ProveedorController {
                 return generatedKeys.getInt("idCategoria");
             }
         }
-        return -1;
+
+        return -1; // En caso de error
     }
 
-    // Método para asociar proveedor con categoría
-    private void asociarProveedorConCategoria(int idProveedor, int idCategoria) throws SQLException, IOException {
+    // Método optimizado para asociar proveedor con categoría
+    private void asociarProveedorConCategoria(int idProveedor, int idCategoria, Connection conn) throws SQLException {
         String sql = "INSERT INTO proveedorcategoria (idproveedor, idcategoria) VALUES (?, ?) ON CONFLICT DO NOTHING";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idProveedor);
             stmt.setInt(2, idCategoria);
             stmt.executeUpdate();
