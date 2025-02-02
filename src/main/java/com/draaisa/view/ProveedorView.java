@@ -15,7 +15,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,12 +22,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
-import java.util.Iterator;
-
-import org.apache.poi.ss.usermodel.Cell;
 
 public class ProveedorView extends Application {
 
@@ -48,7 +41,7 @@ public class ProveedorView extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Proveedor Management");
+        primaryStage.setTitle("Módulo de Proveedores");
 
         // Crear menú
         MenuBar menuBar = new MenuBar();
@@ -206,6 +199,7 @@ public class ProveedorView extends Application {
             List<String> categoriasSeleccionadas = new ArrayList<>();
             for (Node node : categoriaContainer.getChildren()) {
                 if (node instanceof ComboBox) {
+                    @SuppressWarnings("unchecked")
                     String categoria = ((ComboBox<String>) node).getValue();
                     if (categoria != null) {
                         categoriasSeleccionadas.add(categoria);
@@ -342,7 +336,8 @@ public class ProveedorView extends Application {
         newStage.show();
     }
 
-    // Consultar provedores
+    // Consultar proveedores
+    @SuppressWarnings("unchecked")
     private void showConsultarForm(VBox vbox) {
         vbox.getChildren().clear();
 
@@ -410,45 +405,24 @@ public class ProveedorView extends Application {
         TableColumn<Proveedor, String> personaFisicaColumn = new TableColumn<>("Es Persona Física");
         personaFisicaColumn.setCellValueFactory(new PropertyValueFactory<>("esPersonaFisica"));
 
+        TableColumn<Proveedor, String> categoriasColumn = new TableColumn<>("Categorías");
+        categoriasColumn.setCellValueFactory(new PropertyValueFactory<>("categoriasAsString"));
+        categoriasColumn.setResizable(true);
+        categoriasColumn.setPrefWidth(350);
+
         // Agregar las columnas al TableView
         tableView.getColumns().addAll(idColumn, nombreColumn, rfcColumn, telefonoColumn, cpColumn, noExtColumn,
                 noIntColumn, calleColumn, coloniaColumn, ciudadColumn, municipioColumn, estadoColumn, paisColumn,
-                correoColumn,
-                curpColumn, personaFisicaColumn);
+                correoColumn, curpColumn, personaFisicaColumn, categoriasColumn);
 
-        // Obtener todos los proveedores y agregarlos al TableView
-        List<Proveedor> proveedores = controller.consultarTodosProveedores();
-        tableView.getItems().addAll(proveedores);
+                List<Proveedor> proveedoresIniciales = controller.consultarTodosProveedores();
+
+        tableView.getItems().setAll(proveedoresIniciales);
 
         // Crear un filtro para la búsqueda
         filtroField.textProperty().addListener((observable, oldValue, newValue) -> {
-            // Limpiar la lista de proveedores filtrados
-            List<Proveedor> proveedoresFiltrados = new ArrayList<>();
-
-            // Dividir el texto de búsqueda en palabras clave separadas por comas
-            String[] palabras = newValue.split(",");
-
-            // Recorrer cada proveedor y verificar si coincide con todas las palabras clave
-            for (Proveedor proveedor : proveedores) {
-                boolean coincide = true;
-
-                // Comprobar cada palabra clave
-                for (String palabra : palabras) {
-                    palabra = palabra.trim().toLowerCase(); // Eliminar espacios y pasar a minúsculas
-                    if (!String.valueOf(proveedor.getIdProveedor()).contains(palabra) &&
-                            !proveedor.getNombreProv().toLowerCase().contains(palabra) &&
-                            !proveedor.getEstado().toLowerCase().contains(palabra) &&
-                            !proveedor.getMunicipio().toLowerCase().contains(palabra)) {
-                        coincide = false; // Si no coincide con algún filtro, romper el bucle
-                        break;
-                    }
-                }
-
-                // Si todas las palabras clave coinciden, añadir el proveedor
-                if (coincide) {
-                    proveedoresFiltrados.add(proveedor);
-                }
-            }
+            // Buscar proveedores con los filtros proporcionados
+            List<Proveedor> proveedoresFiltrados = controller.buscarProveedores(newValue);
 
             // Actualizar la tabla con los proveedores filtrados
             tableView.getItems().setAll(proveedoresFiltrados);
@@ -634,15 +608,16 @@ public class ProveedorView extends Application {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos Excel", "*.xlsx"));
         File file = fileChooser.showOpenDialog(null);
-    
+
         if (file != null) {
             try {
                 // Crear instancia del controlador
                 ProveedorController controller = new ProveedorController();
-    
-                // Llamar al método del controlador para registrar proveedores desde el archivo Excel
+
+                // Llamar al método del controlador para registrar proveedores desde el archivo
+                // Excel
                 controller.registrarProveedorDesdeExcel(file);
-    
+
                 showAlert(Alert.AlertType.INFORMATION, "Proveedores registrados desde Excel.");
             } catch (Exception e) {
                 e.printStackTrace();

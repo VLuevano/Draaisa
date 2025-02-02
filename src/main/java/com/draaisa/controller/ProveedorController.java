@@ -9,7 +9,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Cell;
@@ -104,16 +106,25 @@ public class ProveedorController {
 
     // Método para modificar un proveedor
     public void modificarProveedor(Proveedor proveedor) {
-        String sql = "UPDATE proveedor SET nombreprov = ?, cpproveedor = ?, estado = ?, telefonoprov = ?, correoprov = ? WHERE idproveedor = ?";
+        String sql = "UPDATE proveedor SET nombreprov = ?, cpproveedor = ?, noExtProv = ?, noIntProv = ?, rfcProveedor = ?, municipio = ?, estado = ?, calle = ?, colonia = ?, ciudad = ?, pais = ?, telefonoProv = ?, correoprov = ?, curpproveedor = ?, pfisicaproveedor = ? WHERE idproveedor = ?";
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, proveedor.getNombreProv());
             stmt.setInt(2, proveedor.getCpProveedor());
-            stmt.setString(3, proveedor.getEstado());
-            stmt.setString(4, proveedor.getTelefonoProv());
-            stmt.setString(5, proveedor.getCorreoProv());
-            stmt.setInt(6, proveedor.getIdProveedor());
+            stmt.setInt(3, proveedor.getNoExtProv());
+            stmt.setInt(4, proveedor.getNoIntProv());
+            stmt.setString(5, proveedor.getRfcProveedor());
+            stmt.setString(6, proveedor.getMunicipio());
+            stmt.setString(7, proveedor.getEstado());
+            stmt.setString(8, proveedor.getCalle());
+            stmt.setString(9, proveedor.getColonia());
+            stmt.setString(10, proveedor.getCiudad());
+            stmt.setString(11, proveedor.getPais());
+            stmt.setString(12, proveedor.getTelefonoProv());
+            stmt.setString(13, proveedor.getCorreoProv());
+            stmt.setString(14, proveedor.getCurp());
+            stmt.setBoolean(15, proveedor.isEsPersonaFisica());
             stmt.executeUpdate();
 
             System.out.println("Proveedor actualizado correctamente.");
@@ -123,41 +134,63 @@ public class ProveedorController {
         }
     }
 
-    // Método para buscar proveedores con filtros
     public List<Proveedor> buscarProveedores(String filtro) {
         List<Proveedor> proveedores = new ArrayList<>();
         String[] filtros = filtro.split(","); // Separar por comas
 
-        // Crear condiciones dinámicas
-        StringBuilder sql = new StringBuilder("SELECT * FROM proveedor WHERE ");
+        // Crear condiciones dinámicas para la búsqueda de proveedores
+        StringBuilder sql = new StringBuilder("SELECT p.* FROM proveedor p WHERE ");
         List<String> condiciones = new ArrayList<>();
 
-        // Si el filtro tiene ID, agregar condición
+        // Condiciones de búsqueda por cada filtro
         for (String palabra : filtros) {
-            if (palabra.trim().matches("\\d+")) { // Filtrar por ID
-                condiciones.add("idProveedor = ?");
+            palabra = palabra.trim();
+
+            if (palabra.matches("\\d+")) { // Filtrar por ID
+                condiciones.add("p.idProveedor = ?");
+            } else if (palabra.matches("[a-zA-Z]+")) { // Filtrar por categoría
+                condiciones.add(
+                        "p.idProveedor IN (SELECT pc.idProveedor FROM proveedorcategoria pc INNER JOIN categoria c ON pc.idCategoria = c.idCategoria WHERE c.nombreCategoria ILIKE ?)");
+            } else if (palabra.matches("\\d{10}")) { // Filtrar por teléfono
+                condiciones.add("p.telefonoProv = ?");
+            } else if (palabra.matches("[A-Za-z0-9]{13}")) { // Filtrar por RFC
+                condiciones.add("p.rfcProveedor = ?");
             } else {
                 // Filtrar por nombre, estado, municipio
-                condiciones.add("nombreprov ILIKE ? OR estado ILIKE ? OR municipio ILIKE ?");
+                condiciones.add(
+                        "p.nombreprov ILIKE ? OR p.estado ILIKE ? OR p.municipio ILIKE ? OR p.rfcProveedor ILIKE ?");
             }
         }
 
-        // Unir todas las condiciones
-        sql.append(String.join(" OR ", condiciones));
+        // Si no hay filtros, traer todos los proveedores
+        if (condiciones.isEmpty()) {
+            sql.append("1=1"); // Agregar condición que siempre es verdadera
+        } else {
+            // Unir las condiciones con 'OR' si hay filtros
+            sql.append(String.join(" OR ", condiciones));
+        }
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
             int index = 1;
             for (String palabra : filtros) {
-                if (palabra.trim().matches("\\d+")) {
-                    // Si es un número, se filtra por ID
-                    stmt.setInt(index++, Integer.parseInt(palabra.trim()));
+                palabra = palabra.trim();
+
+                if (palabra.matches("\\d+")) {
+                    stmt.setInt(index++, Integer.parseInt(palabra)); // Filtrar por ID
+                } else if (palabra.matches("[a-zA-Z]+")) {
+                    stmt.setString(index++, "%" + palabra + "%"); // Filtrar por categoría
+                } else if (palabra.matches("\\d{10}")) {
+                    stmt.setString(index++, palabra); // Filtrar por teléfono
+                } else if (palabra.matches("[A-Za-z0-9]{13}")) {
+                    stmt.setString(index++, palabra); // Filtrar por RFC
                 } else {
-                    // Si no es un número, se filtra por nombre, estado y municipio
-                    stmt.setString(index++, "%" + palabra.trim() + "%");
-                    stmt.setString(index++, "%" + palabra.trim() + "%");
-                    stmt.setString(index++, "%" + palabra.trim() + "%");
+                    // Filtrar por nombre, estado, municipio
+                    stmt.setString(index++, "%" + palabra + "%");
+                    stmt.setString(index++, "%" + palabra + "%");
+                    stmt.setString(index++, "%" + palabra + "%");
+                    stmt.setString(index++, "%" + palabra + "%");
                 }
             }
 
@@ -180,6 +213,35 @@ public class ProveedorController {
                         rs.getString("correoProv"),
                         rs.getString("curpproveedor"),
                         rs.getBoolean("pfisicaproveedor"));
+
+                // Inicializar lista de categorías vacía
+                List<Categoria> categorias = new ArrayList<>();
+
+                // Consulta para obtener las categorías asociadas al proveedor
+                String categoriaSql = """
+                        SELECT c.idCategoria, c.nombreCategoria
+                        FROM categoria c
+                        INNER JOIN proveedorcategoria pc ON c.idCategoria = pc.idCategoria
+                        WHERE pc.idProveedor = ?""";
+
+                try (PreparedStatement stmtCategorias = conn.prepareStatement(categoriaSql)) {
+                    stmtCategorias.setInt(1, proveedor.getIdProveedor());
+                    ResultSet rsCategorias = stmtCategorias.executeQuery();
+
+                    while (rsCategorias.next()) {
+                        int idCat = rsCategorias.getInt("idCategoria");
+                        String nombreCat = rsCategorias.getString("nombreCategoria");
+                        Categoria categoria = new Categoria(idCat, nombreCat);
+                        categorias.add(categoria);
+                    }
+                }
+
+                // Asignar categorías solo si se encontraron
+                if (!categorias.isEmpty()) {
+                    proveedor.setCategorias(categorias);
+                }
+
+                // Agregar proveedor a la lista
                 proveedores.add(proveedor);
             }
         } catch (SQLException | IOException e) {
@@ -228,11 +290,15 @@ public class ProveedorController {
     public List<Proveedor> consultarTodosProveedores() {
         List<Proveedor> proveedores = new ArrayList<>();
         String sql = "SELECT * FROM proveedor";
+
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             ResultSet rs = stmt.executeQuery();
+            Map<Integer, Proveedor> proveedoresMap = new HashMap<>(); // Usar un mapa para evitar duplicados
+
             while (rs.next()) {
+                // Crear proveedor
                 Proveedor proveedor = new Proveedor(
                         rs.getInt("idProveedor"),
                         rs.getString("nombreProv"),
@@ -250,14 +316,53 @@ public class ProveedorController {
                         rs.getString("correoProv"),
                         rs.getString("curpproveedor"),
                         rs.getBoolean("pfisicaproveedor"));
-                proveedores.add(proveedor);
+
+                // Si el proveedor ya está en el mapa, usamos el existente y agregamos las
+                // categorías
+                Proveedor existingProveedor = proveedoresMap.get(proveedor.getIdProveedor());
+                if (existingProveedor == null) {
+                    proveedoresMap.put(proveedor.getIdProveedor(), proveedor);
+                } else {
+                    proveedor = existingProveedor; // Usar el proveedor existente
+                }
+
+                // Consulta para obtener las categorías asociadas al proveedor
+                String categoriaSql = """
+                        SELECT c.idCategoria, c.nombreCategoria
+                        FROM categoria c
+                        INNER JOIN proveedorcategoria pc ON c.idCategoria = pc.idCategoria
+                        WHERE pc.idProveedor = ?""";
+
+                try (PreparedStatement stmtCategorias = conn.prepareStatement(categoriaSql)) {
+                    stmtCategorias.setInt(1, proveedor.getIdProveedor());
+                    ResultSet rsCategorias = stmtCategorias.executeQuery();
+
+                    List<Categoria> categorias = new ArrayList<>();
+                    while (rsCategorias.next()) {
+                        int idCat = rsCategorias.getInt("idCategoria");
+                        String nombreCat = rsCategorias.getString("nombreCategoria");
+                        categorias.add(new Categoria(idCat, nombreCat));
+                    }
+
+                    if (!categorias.isEmpty()) {
+                        proveedor.setCategorias(categorias); // Usar lista de categorías
+                    }
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
             }
+
+            // Convertir el mapa a una lista de proveedores sin duplicados
+            proveedores.addAll(proveedoresMap.values());
+
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
+
         return proveedores;
     }
-
 
     // Método para registrar proveedor desde archivo Excel
     public void registrarProveedorDesdeExcel(File excelFile) {

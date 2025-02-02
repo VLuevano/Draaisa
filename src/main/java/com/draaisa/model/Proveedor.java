@@ -32,6 +32,8 @@ public class Proveedor {
     private StringProperty telefonoProvProveedorProperty;
     private StringProperty correoProvProveedorProperty;
 
+    private String categoriasAsString;
+
     public Proveedor(int idProveedor, String nombreProv, int cpProveedor, int noExtProv, int noIntProv,
             String rfcProveedor, String municipio, String estado, String calle, String colonia, String ciudad,
             String pais, String telefonoProv, String correoProv, String curp, boolean esPersonaFisica) {
@@ -58,12 +60,6 @@ public class Proveedor {
         this.noIntProvProveedorProperty = new SimpleStringProperty(String.valueOf(noIntProv));
         this.telefonoProvProveedorProperty = new SimpleStringProperty(telefonoProv);
         this.correoProvProveedorProperty = new SimpleStringProperty(correoProv);
-    }
-
-    public Proveedor(String nombreProv2, int cpProveedor2, int noExtProv2, int noIntProv2, String rfcProveedor2,
-            String municipio2, String estado2, String calle2, String colonia2, String ciudad2, String pais2,
-            String telefonoProv2, String correoProv2, String curp2, boolean esPersonaFisica2) {
-        //TODO Auto-generated constructor stub
     }
 
     public int getIdProveedor() {
@@ -226,4 +222,20 @@ public class Proveedor {
         return correoProvProveedorProperty; // Método para acceder a la propiedad
     }
 
+    public String getCategoriasAsString() {
+        StringBuilder categoriasString = new StringBuilder();
+        for (Categoria categoria : categorias) {
+            if (categoriasString.length() > 0) {
+                categoriasString.append(", "); // Separador entre categorías
+            }
+            categoriasString.append(categoria.getNombreCategoria()); // Asegúrate de que 'nombreCategoria' esté correctamente asignado
+        }
+        return categoriasString.toString();
+    }
+
+    public void setCategoriasAsString(String categoriasAsString) {
+        this.categoriasAsString = categoriasAsString;
+    }
+    
+    
 }
