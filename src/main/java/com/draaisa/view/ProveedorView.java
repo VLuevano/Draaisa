@@ -6,6 +6,7 @@ import com.draaisa.model.Categoria;
 import com.draaisa.model.Proveedor;
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -77,9 +78,14 @@ public class ProveedorView extends Application {
         primaryStage.show();
     }
 
-    //Registrar proveedores
+    // Registrar proveedores
     private void showRegistroForm(VBox vbox) throws IOException {
         vbox.getChildren().clear();
+
+         // Asegurarse de que la ventana es lo suficientemente grande
+         Stage stage = (Stage) vbox.getScene().getWindow();
+         stage.setWidth(600);
+         stage.setHeight(700);
 
         // Título del apartado
         Label titleLabel = new Label("Registrar Proveedor");
@@ -130,14 +136,37 @@ public class ProveedorView extends Application {
 
         CheckBox personaFisicaCheck = new CheckBox("Es persona física");
 
-        // Crear ComboBox para seleccionar categoría
+        // Crear contenedor para las categorías
+        HBox categoriaContainer = new HBox(10);
+
+        // Crear un ComboBox inicial para la categoría
         ComboBox<String> categoriaComboBox = new ComboBox<>();
         cargarCategorias(categoriaComboBox); // Cargar categorías desde la base de datos
         categoriaComboBox.setPromptText("Selecciona categoría");
 
+        // Añadir el ComboBox al contenedor
+        categoriaContainer.getChildren().add(categoriaComboBox);
+
+        // Crear botón para agregar más ComboBoxes
+        Button agregarCategoriaButton = new Button("Agregar otra categoría");
+        agregarCategoriaButton.setOnAction(e -> {
+            ComboBox<String> nuevaCategoriaComboBox = new ComboBox<>();
+            try {
+                cargarCategorias(nuevaCategoriaComboBox);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            } // Cargar categorías desde la base de datos
+            nuevaCategoriaComboBox.setPromptText("Selecciona categoría");
+            categoriaContainer.getChildren().add(nuevaCategoriaComboBox);
+        });
+
         // Crear botón para registrar nueva categoría
         Button nuevaCategoriaButton = new Button("Registrar Nueva Categoría");
         nuevaCategoriaButton.setOnAction(e -> showRegistrarCategoriaForm(vbox, categoriaComboBox));
+
+        // Contenedor para los botones de categoría (ahora alineados horizontalmente)
+        HBox categoriaBotonesContainer = new HBox(10);
+        categoriaBotonesContainer.getChildren().addAll(agregarCategoriaButton, nuevaCategoriaButton);
 
         // Crear botón para registrar
         Button registrarButton = new Button("Registrar");
@@ -157,12 +186,22 @@ public class ProveedorView extends Application {
             String correo = correoField.getText().trim();
             String curp = curpField.getText().trim();
             boolean esPersonaFisica = personaFisicaCheck.isSelected();
-            String categoriaSeleccionada = categoriaComboBox.getValue();
+
+            // Obtener todas las categorías seleccionadas
+            List<String> categoriasSeleccionadas = new ArrayList<>();
+            for (Node node : categoriaContainer.getChildren()) {
+                if (node instanceof ComboBox) {
+                    String categoria = ((ComboBox<String>) node).getValue();
+                    if (categoria != null) {
+                        categoriasSeleccionadas.add(categoria);
+                    }
+                }
+            }
 
             // Validaciones
             if (nombre.isEmpty() || rfc.isEmpty() || telefono.isEmpty() || cp.isEmpty() || calle.isEmpty()
                     || colonia.isEmpty() || ciudad.isEmpty() || municipio.isEmpty() || estado.isEmpty()
-                    || pais.isEmpty() || correo.isEmpty() || curp.isEmpty() || categoriaSeleccionada == null) {
+                    || pais.isEmpty() || correo.isEmpty() || curp.isEmpty()) {
                 showAlert(Alert.AlertType.ERROR, "Todos los campos son obligatorios.");
                 return;
             }
@@ -200,8 +239,11 @@ public class ProveedorView extends Application {
             Proveedor proveedor = new Proveedor(0, nombre, cpInt, noExtInt, noIntInt, rfc, municipio, estado, calle,
                     colonia, ciudad, pais, telefono, correo, curp, esPersonaFisica);
             List<Categoria> categorias = new ArrayList<>();
-            // Agregar categoría seleccionada
-            categorias.add(new Categoria(0, categoriaSeleccionada, "Descripción"));
+
+            // Agregar las categorías seleccionadas
+            for (String categoriaSeleccionada : categoriasSeleccionadas) {
+                categorias.add(new Categoria(0, categoriaSeleccionada, "Descripción"));
+            }
 
             controller.registrarProveedor(proveedor, categorias);
             showAlert(Alert.AlertType.INFORMATION, "Proveedor registrado con éxito.");
@@ -212,16 +254,11 @@ public class ProveedorView extends Application {
         formContainer.getChildren().addAll(
                 titleLabel, nombreField, rfcField, telefonoField, cpField, noExtField, noIntField, calleField,
                 coloniaField, ciudadField, municipioField, estadoField, paisField, correoField, curpField,
-                personaFisicaCheck, categoriaComboBox, nuevaCategoriaButton, registrarButton);
+                personaFisicaCheck, categoriaContainer, categoriaBotonesContainer, registrarButton);
 
         scrollPane.setContent(formContainer);
         scrollPane.setFitToHeight(true); // Ajusta la altura al contenido
         scrollPane.setFitToWidth(true); // Ajusta el ancho al contenido
-
-        // Asegurarse de que la ventana es lo suficientemente grande
-        Stage stage = (Stage) vbox.getScene().getWindow();
-        stage.setWidth(600);
-        stage.setHeight(600);
 
         // Agregar el contenedor con scroll al VBox
         vbox.getChildren().add(scrollPane);
@@ -315,9 +352,18 @@ public class ProveedorView extends Application {
         newStage.show();
     }
 
-    //Consultar provedores
+    // Consultar provedores
     private void showConsultarForm(VBox vbox) {
         vbox.getChildren().clear();
+
+        if (vbox.getScene() != null) {
+            Stage stage = (Stage) vbox.getScene().getWindow();
+            stage.setWidth(900);
+            stage.setHeight(600);
+        } else {
+            System.err.println("El VBox aún no está en la escena.");
+        }
+        
 
         // Crear campo de búsqueda
         TextField filtroField = new TextField();
@@ -419,6 +465,12 @@ public class ProveedorView extends Application {
             tableView.getItems().setAll(proveedoresFiltrados);
         });
 
+        tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                mostrarVentanaEdicionProveedor(newValue);
+            }
+        });
+
         // Crear un ScrollPane para que la tabla sea desplazable si es necesario
         ScrollPane scrollPane = new ScrollPane(tableView);
         scrollPane.setFitToHeight(true);
@@ -433,5 +485,113 @@ public class ProveedorView extends Application {
         MenuPrincipalScreen menuPrincipalScreen = new MenuPrincipalScreen(primaryStage, usuarioActual);
         menuPrincipalScreen.mostrarMenu(); // Mostrar el menú principal
     }
+
+    public void mostrarVentanaEdicionProveedor(Proveedor proveedorSeleccionado) {
+        // Crear los campos de texto para editar
+        TextField nombreField = new TextField(proveedorSeleccionado.getNombreProv());
+        TextField rfcField = new TextField(proveedorSeleccionado.getRfcProveedor());
+        TextField telefonoField = new TextField(proveedorSeleccionado.getTelefonoProv());
+        TextField cpField = new TextField(String.valueOf(proveedorSeleccionado.getCpProveedor()));
+        TextField noExtField = new TextField(String.valueOf(proveedorSeleccionado.getNoExtProv()));
+        TextField noIntField = new TextField(String.valueOf(proveedorSeleccionado.getNoIntProv()));
+        TextField calleField = new TextField(proveedorSeleccionado.getCalle());
+        TextField coloniaField = new TextField(proveedorSeleccionado.getColonia());
+        TextField ciudadField = new TextField(proveedorSeleccionado.getCiudad());
+        TextField municipioField = new TextField(proveedorSeleccionado.getMunicipio());
+        TextField estadoField = new TextField(proveedorSeleccionado.getEstado());
+        TextField paisField = new TextField(proveedorSeleccionado.getPais());
+        TextField correoField = new TextField(proveedorSeleccionado.getCorreoProv());
+        TextField curpField = new TextField(proveedorSeleccionado.getCurp());
+        CheckBox personaFisicaCheck = new CheckBox();
+        personaFisicaCheck.setSelected(proveedorSeleccionado.isEsPersonaFisica());
+
+        // Crear botones de acción
+        Button guardarButton = new Button("Guardar cambios");
+        Button eliminarButton = new Button("Eliminar proveedor");
+
+        // Evento para guardar cambios
+        guardarButton.setOnAction(e -> {
+            // Crear un nuevo proveedor con los datos editados
+            Proveedor proveedorEditado = new Proveedor(
+                    proveedorSeleccionado.getIdProveedor(),  // ID no cambia
+                    nombreField.getText(),
+                    Integer.parseInt(cpField.getText()),
+                    Integer.parseInt(noExtField.getText()),
+                    Integer.parseInt(noIntField.getText()),
+                    rfcField.getText(),
+                    municipioField.getText(),
+                    estadoField.getText(),
+                    calleField.getText(),
+                    coloniaField.getText(),
+                    ciudadField.getText(),
+                    paisField.getText(),
+                    telefonoField.getText(),
+                    correoField.getText(),
+                    curpField.getText(),
+                    personaFisicaCheck.isSelected()
+            );
+            // Llamar al método del controlador para actualizar el proveedor
+            controller.modificarProveedor(proveedorEditado);
+            // Cerrar la ventana
+            ((Stage) guardarButton.getScene().getWindow()).close();
+        });
+
+        // Evento para eliminar proveedor
+        eliminarButton.setOnAction(e -> {
+            // Confirmación antes de eliminar
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirmar eliminación");
+            alert.setHeaderText("¿Estás seguro de eliminar este proveedor?");
+            alert.setContentText("Esta acción no se puede deshacer.");
+            alert.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.OK) {
+                    controller.eliminarProveedor(proveedorSeleccionado.getIdProveedor());
+                    // Cerrar la ventana después de eliminar
+                    ((Stage) eliminarButton.getScene().getWindow()).close();
+                }
+            });
+        });
+
+        // Crear un VBox para organizar los campos y botones
+        VBox vboxFormulario = new VBox(10);
+        vboxFormulario.setPadding(new Insets(10));  // Añadir espaciado alrededor de los bordes
+
+        // Agregar los campos de texto al VBox
+        vboxFormulario.getChildren().addAll(
+                new Label("Nombre:"), nombreField,
+                new Label("RFC:"), rfcField,
+                new Label("Teléfono:"), telefonoField,
+                new Label("Código Postal:"), cpField,
+                new Label("Número Exterior:"), noExtField,
+                new Label("Número Interior:"), noIntField,
+                new Label("Calle:"), calleField,
+                new Label("Colonia:"), coloniaField,
+                new Label("Ciudad:"), ciudadField,
+                new Label("Municipio:"), municipioField,
+                new Label("Estado:"), estadoField,
+                new Label("País:"), paisField,
+                new Label("Correo:"), correoField,
+                new Label("CURP:"), curpField,
+                new Label("Es Persona Física:"), personaFisicaCheck,
+                guardarButton, eliminarButton
+        );
+
+        // Crear un ScrollPane para permitir desplazamiento
+        ScrollPane scrollPane = new ScrollPane(vboxFormulario);
+        scrollPane.setFitToWidth(true);  // Ajustar el contenido al ancho del scroll
+        scrollPane.setFitToHeight(true);  // Ajustar el contenido al alto del scroll
+
+        // Crear la escena con el ScrollPane
+        Scene scene = new Scene(scrollPane, 400, 600);
+        Stage ventanaEdicion = new Stage();
+        ventanaEdicion.setTitle("Editar Proveedor");
+        
+        // Establecer un borde y relleno para darle formato a la ventana
+        ventanaEdicion.setScene(scene);
+        ventanaEdicion.setResizable(false);  // Evitar que la ventana cambie de tamaño
+        ventanaEdicion.show();
+    }
+
+
 
 }

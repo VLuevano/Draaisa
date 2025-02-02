@@ -20,6 +20,10 @@ public class MenuPrincipalScreen {
     }
 
     public void mostrarMenu() {
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(600);
+        primaryStage.setResizable(false);
+
         BorderPane root = new BorderPane();
         root.setPrefSize(800, 600);
 
@@ -40,7 +44,7 @@ public class MenuPrincipalScreen {
             new ProveedorView(usuarioActual).start(primaryStage);
         });
         menuProveedores.getItems().add(abrirProveedores);
-        
+
         Menu menuClientes = new Menu("Clientes");
         Menu menuFabricantes = new Menu("Fabricantes");
         Menu menuPrestadores = new Menu("Prestadores de Servicios");
@@ -50,7 +54,8 @@ public class MenuPrincipalScreen {
             menuUsuarios.getItems().add(new MenuItem("Gestión de Usuarios"));
         }
 
-        menuBar.getMenus().addAll(menuArchivo, menuProductos, menuProveedores, menuClientes, menuFabricantes, menuPrestadores,
+        menuBar.getMenus().addAll(menuArchivo, menuProductos, menuProveedores, menuClientes, menuFabricantes,
+                menuPrestadores,
                 menuUsuarios);
 
         VBox centro = new VBox(15);

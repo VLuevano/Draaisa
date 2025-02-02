@@ -11,12 +11,13 @@ import java.util.List;
 
 public class ProveedorController {
 
-    // Método para registrar proveedor desde formulario con múltiples categorías
+    // Método para registrar proveedor desde formulario
     public void registrarProveedor(Proveedor proveedor, List<Categoria> categorias) {
         String sqlProveedor = "INSERT INTO proveedor (nombreprov, cpProveedor, noExtProv, noIntProv, rfcProveedor, municipio, estado, calle, colonia, ciudad, pais, telefonoProv, correoProv, curpproveedor, pfisicaproveedor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idProveedor";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmtProveedor = conn.prepareStatement(sqlProveedor, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement stmtProveedor = conn.prepareStatement(sqlProveedor,
+                        Statement.RETURN_GENERATED_KEYS)) {
 
             stmtProveedor.setString(1, proveedor.getNombreProv());
             stmtProveedor.setInt(2, proveedor.getCpProveedor());
@@ -42,8 +43,8 @@ public class ProveedorController {
             }
 
             for (Categoria categoria : categorias) {
-                int idCategoria = obtenerOCrearCategoria(categoria, conn);
-                asociarProveedorConCategoria(idProveedor, idCategoria, conn);
+                int idCategoria = obtenerOCrearCategoria(categoria);
+                asociarProveedorConCategoria(idProveedor, idCategoria);
             }
 
             System.out.println("Proveedor registrado exitosamente.");
@@ -54,20 +55,23 @@ public class ProveedorController {
         }
     }
 
-    // Método optimizado para obtener o crear una categoría
-    private int obtenerOCrearCategoria(Categoria categoria, Connection conn) throws SQLException {
+    // Método para obtener o registrar una categoría
+    private int obtenerOCrearCategoria(Categoria categoria) throws SQLException, IOException {
         String sqlObtenerId = "SELECT idCategoria FROM categoria WHERE nombreCategoria = ?";
-        String sqlInsertCategoria = "INSERT INTO categoria (nombrecategoria, desccategoria) VALUES (?, ?) RETURNING idcategoria";
+        String sqlInsertCategoria = "INSERT INTO categoria (nombrecategoria, desccategoria) VALUES (?, ?) ON CONFLICT (nombrecategoria) DO NOTHING RETURNING idcategoria";
 
-        try (PreparedStatement stmtObtenerId = conn.prepareStatement(sqlObtenerId)) {
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmtObtenerId = conn.prepareStatement(sqlObtenerId);
+                PreparedStatement stmtInsertCategoria = conn.prepareStatement(sqlInsertCategoria)) {
+
+            // Verificar si la categoría ya existe
             stmtObtenerId.setString(1, categoria.getNombreCategoria());
             ResultSet rs = stmtObtenerId.executeQuery();
             if (rs.next()) {
                 return rs.getInt("idCategoria");
             }
-        }
 
-        try (PreparedStatement stmtInsertCategoria = conn.prepareStatement(sqlInsertCategoria)) {
+            // Si no existe, insertarla
             stmtInsertCategoria.setString(1, categoria.getNombreCategoria());
             stmtInsertCategoria.setString(2, categoria.getDescripcionCategoria());
             ResultSet generatedKeys = stmtInsertCategoria.executeQuery();
@@ -75,14 +79,14 @@ public class ProveedorController {
                 return generatedKeys.getInt("idCategoria");
             }
         }
-
-        return -1; // En caso de error
+        return -1;
     }
 
-    // Método optimizado para asociar proveedor con categoría
-    private void asociarProveedorConCategoria(int idProveedor, int idCategoria, Connection conn) throws SQLException {
+    // Método para asociar proveedor con categoría
+    private void asociarProveedorConCategoria(int idProveedor, int idCategoria) throws SQLException, IOException {
         String sql = "INSERT INTO proveedorcategoria (idproveedor, idcategoria) VALUES (?, ?) ON CONFLICT DO NOTHING";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idProveedor);
             stmt.setInt(2, idCategoria);
             stmt.executeUpdate();
@@ -93,7 +97,7 @@ public class ProveedorController {
     public void modificarProveedor(Proveedor proveedor) {
         String sql = "UPDATE proveedor SET nombreprov = ?, cpproveedor = ?, estado = ?, telefonoprov = ?, correoprov = ? WHERE idproveedor = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, proveedor.getNombreProv());
             stmt.setInt(2, proveedor.getCpProveedor());
@@ -114,11 +118,11 @@ public class ProveedorController {
     public List<Proveedor> buscarProveedores(String filtro) {
         List<Proveedor> proveedores = new ArrayList<>();
         String[] filtros = filtro.split(","); // Separar por comas
-    
+
         // Crear condiciones dinámicas
         StringBuilder sql = new StringBuilder("SELECT * FROM proveedor WHERE ");
         List<String> condiciones = new ArrayList<>();
-    
+
         // Si el filtro tiene ID, agregar condición
         for (String palabra : filtros) {
             if (palabra.trim().matches("\\d+")) { // Filtrar por ID
@@ -128,13 +132,13 @@ public class ProveedorController {
                 condiciones.add("nombreprov ILIKE ? OR estado ILIKE ? OR municipio ILIKE ?");
             }
         }
-    
+
         // Unir todas las condiciones
         sql.append(String.join(" OR ", condiciones));
-    
+
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-    
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
             int index = 1;
             for (String palabra : filtros) {
                 if (palabra.trim().matches("\\d+")) {
@@ -147,78 +151,97 @@ public class ProveedorController {
                     stmt.setString(index++, "%" + palabra.trim() + "%");
                 }
             }
-    
+
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Proveedor proveedor = new Proveedor(
-                    rs.getInt("idProveedor"),
-                    rs.getString("nombreProv"),
-                    rs.getInt("cpProveedor"),
-                    rs.getInt("noExtProv"),
-                    rs.getInt("noIntProv"),
-                    rs.getString("rfcProveedor"),
-                    rs.getString("municipio"),
-                    rs.getString("estado"),
-                    rs.getString("calle"),
-                    rs.getString("colonia"),
-                    rs.getString("ciudad"),
-                    rs.getString("pais"),
-                    rs.getString("telefonoProv"),
-                    rs.getString("correoProv"),
-                    rs.getString("curpproveedor"),
-                    rs.getBoolean("pfisicaproveedor")
-                );
+                        rs.getInt("idProveedor"),
+                        rs.getString("nombreProv"),
+                        rs.getInt("cpProveedor"),
+                        rs.getInt("noExtProv"),
+                        rs.getInt("noIntProv"),
+                        rs.getString("rfcProveedor"),
+                        rs.getString("municipio"),
+                        rs.getString("estado"),
+                        rs.getString("calle"),
+                        rs.getString("colonia"),
+                        rs.getString("ciudad"),
+                        rs.getString("pais"),
+                        rs.getString("telefonoProv"),
+                        rs.getString("correoProv"),
+                        rs.getString("curpproveedor"),
+                        rs.getBoolean("pfisicaproveedor"));
                 proveedores.add(proveedor);
             }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
-    
+
         return proveedores;
     }
-    
 
     // Método para eliminar proveedor
     public void eliminarProveedor(int idProveedor) {
-        String sql = "DELETE FROM proveedor WHERE idProveedor = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idProveedor);
-            stmt.executeUpdate();
-            System.out.println("Proveedor eliminado exitosamente.");
+        String sqlEliminarCategoria = "DELETE FROM proveedorcategoria WHERE idproveedor = ?";
+        String sqlEliminarProveedor = "DELETE FROM proveedor WHERE idProveedor = ?";
+    
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            // Iniciar una transacción
+            conn.setAutoCommit(false);
+    
+            try (PreparedStatement stmtCategoria = conn.prepareStatement(sqlEliminarCategoria);
+                 PreparedStatement stmtProveedor = conn.prepareStatement(sqlEliminarProveedor)) {
+    
+                // Eliminar las categorías asociadas con el proveedor
+                stmtCategoria.setInt(1, idProveedor);
+                stmtCategoria.executeUpdate();
+    
+                // Eliminar el proveedor
+                stmtProveedor.setInt(1, idProveedor);
+                stmtProveedor.executeUpdate();
+    
+                // Si todo va bien, confirmar la transacción
+                conn.commit();
+                System.out.println("Proveedor y su categoría eliminados exitosamente.");
+            } catch (SQLException e) {
+                // Si ocurre un error, deshacer la transacción
+                conn.rollback();
+                e.printStackTrace();
+                System.out.println("Error al eliminar proveedor y su categoría.");
+            }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
             System.out.println("Error al eliminar proveedor.");
         }
     }
+    
 
     // Método para consultar todos los proveedores
     public List<Proveedor> consultarTodosProveedores() {
         List<Proveedor> proveedores = new ArrayList<>();
         String sql = "SELECT * FROM proveedor";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Proveedor proveedor = new Proveedor(
-                    rs.getInt("idProveedor"),
-                    rs.getString("nombreProv"),
-                    rs.getInt("cpProveedor"),
-                    rs.getInt("noExtProv"),
-                    rs.getInt("noIntProv"),
-                    rs.getString("rfcProveedor"),
-                    rs.getString("municipio"),
-                    rs.getString("estado"),
-                    rs.getString("calle"),
-                    rs.getString("colonia"),
-                    rs.getString("ciudad"),
-                    rs.getString("pais"),
-                    rs.getString("telefonoProv"),
-                    rs.getString("correoProv"),
-                    rs.getString("curpproveedor"),
-                    rs.getBoolean("pfisicaproveedor")
-                );
+                        rs.getInt("idProveedor"),
+                        rs.getString("nombreProv"),
+                        rs.getInt("cpProveedor"),
+                        rs.getInt("noExtProv"),
+                        rs.getInt("noIntProv"),
+                        rs.getString("rfcProveedor"),
+                        rs.getString("municipio"),
+                        rs.getString("estado"),
+                        rs.getString("calle"),
+                        rs.getString("colonia"),
+                        rs.getString("ciudad"),
+                        rs.getString("pais"),
+                        rs.getString("telefonoProv"),
+                        rs.getString("correoProv"),
+                        rs.getString("curpproveedor"),
+                        rs.getBoolean("pfisicaproveedor"));
                 proveedores.add(proveedor);
             }
         } catch (SQLException | IOException e) {

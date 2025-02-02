@@ -31,6 +31,10 @@ public class LoginScreen extends Application {
     }
 
     private void mostrarPantallaInicio() {
+        primaryStage.setWidth(450);
+        primaryStage.setHeight(550);
+        primaryStage.setResizable(false);
+
         VBox root = new VBox(15);
         root.setAlignment(Pos.CENTER);
 
@@ -60,6 +64,10 @@ public class LoginScreen extends Application {
     }
 
     private void mostrarSeleccionUsuario() {
+        primaryStage.setWidth(450);
+        primaryStage.setHeight(550);
+        primaryStage.setResizable(false);
+
         VBox root = new VBox(15);
         root.setAlignment(Pos.CENTER);
 
@@ -90,6 +98,10 @@ public class LoginScreen extends Application {
     }
 
     private void mostrarPantallaContrasena(String nombreUsuario) {
+        primaryStage.setWidth(450);
+        primaryStage.setHeight(550);
+        primaryStage.setResizable(false);
+
         VBox root = new VBox(15);
         root.setAlignment(Pos.CENTER);
     
