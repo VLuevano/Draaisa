@@ -27,6 +27,9 @@ public class ProveedorView extends Application {
 
     private String usuarioActual;
 
+    private TableView<Proveedor> tableView;
+
+
     public ProveedorView(String usuarioActual) {
         this.usuarioActual = usuarioActual; // Guardamos el usuario actual
     }
@@ -91,48 +94,48 @@ public class ProveedorView extends Application {
         Label titleLabel = new Label("Registrar Proveedor");
         titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-padding: 10px;");
 
-        // Crear campos de texto
-        TextField nombreField = new TextField();
-        nombreField.setPromptText("Nombre del proveedor");
+        // Crear campos de texto con Labels
+    Label nombreLabel = new Label("Nombre del proveedor:");
+    TextField nombreField = new TextField();
 
-        TextField rfcField = new TextField();
-        rfcField.setPromptText("RFC");
+    Label rfcLabel = new Label("RFC:");
+    TextField rfcField = new TextField();
 
-        TextField telefonoField = new TextField();
-        telefonoField.setPromptText("Teléfono");
+    Label telefonoLabel = new Label("Teléfono:");
+    TextField telefonoField = new TextField();
 
-        TextField cpField = new TextField();
-        cpField.setPromptText("Código Postal");
+    Label cpLabel = new Label("Código Postal:");
+    TextField cpField = new TextField();
 
-        TextField noExtField = new TextField();
-        noExtField.setPromptText("Número exterior");
+    Label noExtLabel = new Label("Número exterior:");
+    TextField noExtField = new TextField();
 
-        TextField noIntField = new TextField();
-        noIntField.setPromptText("Número interior");
+    Label noIntLabel = new Label("Número interior:");
+    TextField noIntField = new TextField();
 
-        TextField calleField = new TextField();
-        calleField.setPromptText("Calle");
+    Label calleLabel = new Label("Calle:");
+    TextField calleField = new TextField();
 
-        TextField coloniaField = new TextField();
-        coloniaField.setPromptText("Colonia");
+    Label coloniaLabel = new Label("Colonia:");
+    TextField coloniaField = new TextField();
 
-        TextField ciudadField = new TextField();
-        ciudadField.setPromptText("Ciudad");
+    Label ciudadLabel = new Label("Ciudad:");
+    TextField ciudadField = new TextField();
 
-        TextField municipioField = new TextField();
-        municipioField.setPromptText("Municipio");
+    Label municipioLabel = new Label("Municipio:");
+    TextField municipioField = new TextField();
 
-        TextField estadoField = new TextField();
-        estadoField.setPromptText("Estado");
+    Label estadoLabel = new Label("Estado:");
+    TextField estadoField = new TextField();
 
-        TextField paisField = new TextField();
-        paisField.setPromptText("País");
+    Label paisLabel = new Label("País:");
+    TextField paisField = new TextField();
 
-        TextField correoField = new TextField();
-        correoField.setPromptText("Correo electrónico");
+    Label correoLabel = new Label("Correo electrónico:");
+    TextField correoField = new TextField();
 
-        TextField curpField = new TextField();
-        curpField.setPromptText("CURP");
+    Label curpLabel = new Label("CURP:");
+    TextField curpField = new TextField();
 
         CheckBox personaFisicaCheck = new CheckBox("Es persona física");
 
@@ -198,36 +201,7 @@ public class ProveedorView extends Application {
                 }
             }
 
-            // Validaciones
-            if (nombre.isEmpty() || rfc.isEmpty() || telefono.isEmpty() || cp.isEmpty() || calle.isEmpty()
-                    || colonia.isEmpty() || ciudad.isEmpty() || municipio.isEmpty() || estado.isEmpty()
-                    || pais.isEmpty() || correo.isEmpty() || curp.isEmpty()) {
-                showAlert(Alert.AlertType.ERROR, "Todos los campos son obligatorios.");
-                return;
-            }
-
-            // Validar formato de correo
-            if (!correo.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-                showAlert(Alert.AlertType.ERROR, "Correo electrónico no válido.");
-                return;
-            }
-
-            // Validar formato de RFC (solo como ejemplo simple)
-            if (!rfc.matches("[A-Za-z]{3,4}[0-9]{6}[A-Za-z0-9]{3}")) {
-                showAlert(Alert.AlertType.ERROR, "RFC no válido.");
-                return;
-            }
-
-            // Validar formato de CURP (solo como ejemplo simple)
-            if (!curp.matches("[A-Z]{4}[0-9]{6}[A-Z]{6,7}[0-9]{1,2}")) {
-                showAlert(Alert.AlertType.ERROR, "CURP no válido.");
-                return;
-            }
-
-            // Validar que los campos numéricos contengan solo números
-            if (!cp.matches("[0-9]+") || !noExt.matches("[0-9]+") || (!noInt.isEmpty() && !noInt.matches("[0-9]+"))) {
-                showAlert(Alert.AlertType.ERROR,
-                        "Código Postal, Número exterior y Número interior deben ser numéricos.");
+            if (!validarCampos(nombreField, rfcField, telefonoField, cpField, correoField, curpField)) {
                 return;
             }
 
@@ -252,9 +226,10 @@ public class ProveedorView extends Application {
         ScrollPane scrollPane = new ScrollPane();
         VBox formContainer = new VBox(10);
         formContainer.getChildren().addAll(
-                titleLabel, nombreField, rfcField, telefonoField, cpField, noExtField, noIntField, calleField,
-                coloniaField, ciudadField, municipioField, estadoField, paisField, correoField, curpField,
-                personaFisicaCheck, categoriaContainer, categoriaBotonesContainer, registrarButton);
+            titleLabel, nombreLabel, nombreField, rfcLabel, rfcField, telefonoLabel, telefonoField, cpLabel, cpField,
+            noExtLabel, noExtField, noIntLabel, noIntField, calleLabel, calleField, coloniaLabel, coloniaField,
+            ciudadLabel, ciudadField, municipioLabel, municipioField, estadoLabel, estadoField, paisLabel, paisField,
+            correoLabel, correoField, curpLabel, curpField, personaFisicaCheck, categoriaContainer, categoriaBotonesContainer, registrarButton);
 
         scrollPane.setContent(formContainer);
         scrollPane.setFitToHeight(true); // Ajusta la altura al contenido
@@ -364,13 +339,12 @@ public class ProveedorView extends Application {
             System.err.println("El VBox aún no está en la escena.");
         }
         
-
         // Crear campo de búsqueda
         TextField filtroField = new TextField();
         filtroField.setPromptText("Introduce palabras clave para filtrar");
 
         // Crear el TableView
-        TableView<Proveedor> tableView = new TableView<>();
+        tableView = new TableView<>();
 
         // Crear columnas para cada atributo del proveedor
         TableColumn<Proveedor, Integer> idColumn = new TableColumn<>("ID");
@@ -511,6 +485,11 @@ public class ProveedorView extends Application {
 
         // Evento para guardar cambios
         guardarButton.setOnAction(e -> {
+
+            if (!validarCampos(nombreField, rfcField, telefonoField, cpField, correoField, curpField)) {
+                return;
+            }
+
             // Crear un nuevo proveedor con los datos editados
             Proveedor proveedorEditado = new Proveedor(
                     proveedorSeleccionado.getIdProveedor(),  // ID no cambia
@@ -530,27 +509,35 @@ public class ProveedorView extends Application {
                     curpField.getText(),
                     personaFisicaCheck.isSelected()
             );
+
             // Llamar al método del controlador para actualizar el proveedor
             controller.modificarProveedor(proveedorEditado);
+
+            actualizarTablaProveedores(tableView);
             // Cerrar la ventana
             ((Stage) guardarButton.getScene().getWindow()).close();
         });
 
         // Evento para eliminar proveedor
         eliminarButton.setOnAction(e -> {
-            // Confirmación antes de eliminar
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Confirmar eliminación");
             alert.setHeaderText("¿Estás seguro de eliminar este proveedor?");
             alert.setContentText("Esta acción no se puede deshacer.");
             alert.showAndWait().ifPresent(response -> {
                 if (response == ButtonType.OK) {
+                    // Eliminar proveedor en la base de datos
                     controller.eliminarProveedor(proveedorSeleccionado.getIdProveedor());
-                    // Cerrar la ventana después de eliminar
+        
+                    // Actualizar la tabla
+                    actualizarTablaProveedores(tableView);
+        
+                    // Cerrar la ventana
                     ((Stage) eliminarButton.getScene().getWindow()).close();
                 }
             });
         });
+        
 
         // Crear un VBox para organizar los campos y botones
         VBox vboxFormulario = new VBox(10);
@@ -591,7 +578,43 @@ public class ProveedorView extends Application {
         ventanaEdicion.setResizable(false);  // Evitar que la ventana cambie de tamaño
         ventanaEdicion.show();
     }
+    
+    private void actualizarTablaProveedores(TableView<Proveedor> tableView) {
+        List<Proveedor> proveedoresActualizados = controller.consultarTodosProveedores();
+        tableView.getItems().setAll(proveedoresActualizados);
+    }
 
-
-
+    private boolean validarCampos(TextField nombre, TextField rfc, TextField telefono, TextField cp, TextField correo, TextField curp) {
+        String mensajeError = "";
+    
+        if (nombre.getText().trim().isEmpty()) {
+            mensajeError += "El nombre es obligatorio.\n";
+        }
+        if (!rfc.getText().matches("^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$")) {
+            mensajeError += "El RFC no tiene un formato válido.\n";
+        }
+        if (!telefono.getText().matches("^[0-9]{10}$")) {
+            mensajeError += "El teléfono debe contener 10 dígitos.\n";
+        }
+        if (!cp.getText().matches("^[0-9]{5}$")) {
+            mensajeError += "El código postal debe contener 5 dígitos.\n";
+        }
+        if (!correo.getText().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            mensajeError += "El correo no tiene un formato válido.\n";
+        }
+        if (!curp.getText().matches("[A-Z]{4}[0-9]{6}[A-Z]{6,7}[0-9]{1,2}")) {
+            mensajeError += "El CURP no tiene un formato válido.\n";
+        }
+    
+        if (!mensajeError.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error de Validación");
+            alert.setHeaderText("Corrige los siguientes errores:");
+            alert.setContentText(mensajeError);
+            alert.show();
+            return false;
+        }
+        return true;
+    }
+    
 }
