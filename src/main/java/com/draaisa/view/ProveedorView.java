@@ -11,8 +11,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,6 +24,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import java.util.Iterator;
+
+import org.apache.poi.ss.usermodel.Cell;
+
 public class ProveedorView extends Application {
 
     private ProveedorController controller = new ProveedorController();
@@ -28,7 +37,6 @@ public class ProveedorView extends Application {
     private String usuarioActual;
 
     private TableView<Proveedor> tableView;
-
 
     public ProveedorView(String usuarioActual) {
         this.usuarioActual = usuarioActual; // Guardamos el usuario actual
@@ -85,57 +93,57 @@ public class ProveedorView extends Application {
     private void showRegistroForm(VBox vbox) throws IOException {
         vbox.getChildren().clear();
 
-         // Asegurarse de que la ventana es lo suficientemente grande
-         Stage stage = (Stage) vbox.getScene().getWindow();
-         stage.setWidth(600);
-         stage.setHeight(700);
+        // Asegurarse de que la ventana es lo suficientemente grande
+        Stage stage = (Stage) vbox.getScene().getWindow();
+        stage.setWidth(600);
+        stage.setHeight(700);
 
         // Título del apartado
         Label titleLabel = new Label("Registrar Proveedor");
         titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-padding: 10px;");
 
         // Crear campos de texto con Labels
-    Label nombreLabel = new Label("Nombre del proveedor:");
-    TextField nombreField = new TextField();
+        Label nombreLabel = new Label("Nombre del proveedor:");
+        TextField nombreField = new TextField();
 
-    Label rfcLabel = new Label("RFC:");
-    TextField rfcField = new TextField();
+        Label rfcLabel = new Label("RFC:");
+        TextField rfcField = new TextField();
 
-    Label telefonoLabel = new Label("Teléfono:");
-    TextField telefonoField = new TextField();
+        Label telefonoLabel = new Label("Teléfono:");
+        TextField telefonoField = new TextField();
 
-    Label cpLabel = new Label("Código Postal:");
-    TextField cpField = new TextField();
+        Label cpLabel = new Label("Código Postal:");
+        TextField cpField = new TextField();
 
-    Label noExtLabel = new Label("Número exterior:");
-    TextField noExtField = new TextField();
+        Label noExtLabel = new Label("Número exterior:");
+        TextField noExtField = new TextField();
 
-    Label noIntLabel = new Label("Número interior:");
-    TextField noIntField = new TextField();
+        Label noIntLabel = new Label("Número interior:");
+        TextField noIntField = new TextField();
 
-    Label calleLabel = new Label("Calle:");
-    TextField calleField = new TextField();
+        Label calleLabel = new Label("Calle:");
+        TextField calleField = new TextField();
 
-    Label coloniaLabel = new Label("Colonia:");
-    TextField coloniaField = new TextField();
+        Label coloniaLabel = new Label("Colonia:");
+        TextField coloniaField = new TextField();
 
-    Label ciudadLabel = new Label("Ciudad:");
-    TextField ciudadField = new TextField();
+        Label ciudadLabel = new Label("Ciudad:");
+        TextField ciudadField = new TextField();
 
-    Label municipioLabel = new Label("Municipio:");
-    TextField municipioField = new TextField();
+        Label municipioLabel = new Label("Municipio:");
+        TextField municipioField = new TextField();
 
-    Label estadoLabel = new Label("Estado:");
-    TextField estadoField = new TextField();
+        Label estadoLabel = new Label("Estado:");
+        TextField estadoField = new TextField();
 
-    Label paisLabel = new Label("País:");
-    TextField paisField = new TextField();
+        Label paisLabel = new Label("País:");
+        TextField paisField = new TextField();
 
-    Label correoLabel = new Label("Correo electrónico:");
-    TextField correoField = new TextField();
+        Label correoLabel = new Label("Correo electrónico:");
+        TextField correoField = new TextField();
 
-    Label curpLabel = new Label("CURP:");
-    TextField curpField = new TextField();
+        Label curpLabel = new Label("CURP:");
+        TextField curpField = new TextField();
 
         CheckBox personaFisicaCheck = new CheckBox("Es persona física");
 
@@ -170,6 +178,10 @@ public class ProveedorView extends Application {
         // Contenedor para los botones de categoría (ahora alineados horizontalmente)
         HBox categoriaBotonesContainer = new HBox(10);
         categoriaBotonesContainer.getChildren().addAll(agregarCategoriaButton, nuevaCategoriaButton);
+
+        // Botón para cargar archivo Excel
+        Button cargarExcelButton = new Button("Cargar archivo Excel");
+        cargarExcelButton.setOnAction(e -> cargarProveedoresDesdeExcel());
 
         // Crear botón para registrar
         Button registrarButton = new Button("Registrar");
@@ -226,10 +238,13 @@ public class ProveedorView extends Application {
         ScrollPane scrollPane = new ScrollPane();
         VBox formContainer = new VBox(10);
         formContainer.getChildren().addAll(
-            titleLabel, nombreLabel, nombreField, rfcLabel, rfcField, telefonoLabel, telefonoField, cpLabel, cpField,
-            noExtLabel, noExtField, noIntLabel, noIntField, calleLabel, calleField, coloniaLabel, coloniaField,
-            ciudadLabel, ciudadField, municipioLabel, municipioField, estadoLabel, estadoField, paisLabel, paisField,
-            correoLabel, correoField, curpLabel, curpField, personaFisicaCheck, categoriaContainer, categoriaBotonesContainer, registrarButton);
+                titleLabel, nombreLabel, nombreField, rfcLabel, rfcField, telefonoLabel, telefonoField, cpLabel,
+                cpField,
+                noExtLabel, noExtField, noIntLabel, noIntField, calleLabel, calleField, coloniaLabel, coloniaField,
+                ciudadLabel, ciudadField, municipioLabel, municipioField, estadoLabel, estadoField, paisLabel,
+                paisField,
+                correoLabel, correoField, curpLabel, curpField, personaFisicaCheck, categoriaContainer,
+                categoriaBotonesContainer, registrarButton, cargarExcelButton);
 
         scrollPane.setContent(formContainer);
         scrollPane.setFitToHeight(true); // Ajusta la altura al contenido
@@ -338,7 +353,7 @@ public class ProveedorView extends Application {
         } else {
             System.err.println("El VBox aún no está en la escena.");
         }
-        
+
         // Crear campo de búsqueda
         TextField filtroField = new TextField();
         filtroField.setPromptText("Introduce palabras clave para filtrar");
@@ -492,7 +507,7 @@ public class ProveedorView extends Application {
 
             // Crear un nuevo proveedor con los datos editados
             Proveedor proveedorEditado = new Proveedor(
-                    proveedorSeleccionado.getIdProveedor(),  // ID no cambia
+                    proveedorSeleccionado.getIdProveedor(), // ID no cambia
                     nombreField.getText(),
                     Integer.parseInt(cpField.getText()),
                     Integer.parseInt(noExtField.getText()),
@@ -507,8 +522,7 @@ public class ProveedorView extends Application {
                     telefonoField.getText(),
                     correoField.getText(),
                     curpField.getText(),
-                    personaFisicaCheck.isSelected()
-            );
+                    personaFisicaCheck.isSelected());
 
             // Llamar al método del controlador para actualizar el proveedor
             controller.modificarProveedor(proveedorEditado);
@@ -528,20 +542,19 @@ public class ProveedorView extends Application {
                 if (response == ButtonType.OK) {
                     // Eliminar proveedor en la base de datos
                     controller.eliminarProveedor(proveedorSeleccionado.getIdProveedor());
-        
+
                     // Actualizar la tabla
                     actualizarTablaProveedores(tableView);
-        
+
                     // Cerrar la ventana
                     ((Stage) eliminarButton.getScene().getWindow()).close();
                 }
             });
         });
-        
 
         // Crear un VBox para organizar los campos y botones
         VBox vboxFormulario = new VBox(10);
-        vboxFormulario.setPadding(new Insets(10));  // Añadir espaciado alrededor de los bordes
+        vboxFormulario.setPadding(new Insets(10)); // Añadir espaciado alrededor de los bordes
 
         // Agregar los campos de texto al VBox
         vboxFormulario.getChildren().addAll(
@@ -560,33 +573,33 @@ public class ProveedorView extends Application {
                 new Label("Correo:"), correoField,
                 new Label("CURP:"), curpField,
                 new Label("Es Persona Física:"), personaFisicaCheck,
-                guardarButton, eliminarButton
-        );
+                guardarButton, eliminarButton);
 
         // Crear un ScrollPane para permitir desplazamiento
         ScrollPane scrollPane = new ScrollPane(vboxFormulario);
-        scrollPane.setFitToWidth(true);  // Ajustar el contenido al ancho del scroll
-        scrollPane.setFitToHeight(true);  // Ajustar el contenido al alto del scroll
+        scrollPane.setFitToWidth(true); // Ajustar el contenido al ancho del scroll
+        scrollPane.setFitToHeight(true); // Ajustar el contenido al alto del scroll
 
         // Crear la escena con el ScrollPane
         Scene scene = new Scene(scrollPane, 400, 600);
         Stage ventanaEdicion = new Stage();
         ventanaEdicion.setTitle("Editar Proveedor");
-        
+
         // Establecer un borde y relleno para darle formato a la ventana
         ventanaEdicion.setScene(scene);
-        ventanaEdicion.setResizable(false);  // Evitar que la ventana cambie de tamaño
+        ventanaEdicion.setResizable(false); // Evitar que la ventana cambie de tamaño
         ventanaEdicion.show();
     }
-    
+
     private void actualizarTablaProveedores(TableView<Proveedor> tableView) {
         List<Proveedor> proveedoresActualizados = controller.consultarTodosProveedores();
         tableView.getItems().setAll(proveedoresActualizados);
     }
 
-    private boolean validarCampos(TextField nombre, TextField rfc, TextField telefono, TextField cp, TextField correo, TextField curp) {
+    private boolean validarCampos(TextField nombre, TextField rfc, TextField telefono, TextField cp, TextField correo,
+            TextField curp) {
         String mensajeError = "";
-    
+
         if (nombre.getText().trim().isEmpty()) {
             mensajeError += "El nombre es obligatorio.\n";
         }
@@ -605,7 +618,7 @@ public class ProveedorView extends Application {
         if (!curp.getText().matches("[A-Z]{4}[0-9]{6}[A-Z]{6,7}[0-9]{1,2}")) {
             mensajeError += "El CURP no tiene un formato válido.\n";
         }
-    
+
         if (!mensajeError.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error de Validación");
@@ -616,5 +629,26 @@ public class ProveedorView extends Application {
         }
         return true;
     }
+
+    private void cargarProveedoresDesdeExcel() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos Excel", "*.xlsx"));
+        File file = fileChooser.showOpenDialog(null);
     
+        if (file != null) {
+            try {
+                // Crear instancia del controlador
+                ProveedorController controller = new ProveedorController();
+    
+                // Llamar al método del controlador para registrar proveedores desde el archivo Excel
+                controller.registrarProveedorDesdeExcel(file);
+    
+                showAlert(Alert.AlertType.INFORMATION, "Proveedores registrados desde Excel.");
+            } catch (Exception e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Error al procesar el archivo Excel: " + e.getMessage());
+            }
+        }
+    }
+
 }

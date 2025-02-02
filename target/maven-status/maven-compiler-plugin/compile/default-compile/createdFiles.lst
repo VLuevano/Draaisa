@@ -6,6 +6,7 @@ com\draaisa\model\Usuario.class
 com\draaisa\view\LoginScreen.class
 com\draaisa\model\Producto.class
 com\draaisa\model\Categoria.class
+com\draaisa\controller\ProveedorController$1.class
 com\draaisa\model\Cliente.class
 com\draaisa\model\Empresa.class
 com\draaisa\controller\UsuarioController.class

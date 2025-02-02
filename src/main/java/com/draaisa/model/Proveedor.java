@@ -60,6 +60,12 @@ public class Proveedor {
         this.correoProvProveedorProperty = new SimpleStringProperty(correoProv);
     }
 
+    public Proveedor(String nombreProv2, int cpProveedor2, int noExtProv2, int noIntProv2, String rfcProveedor2,
+            String municipio2, String estado2, String calle2, String colonia2, String ciudad2, String pais2,
+            String telefonoProv2, String correoProv2, String curp2, boolean esPersonaFisica2) {
+        //TODO Auto-generated constructor stub
+    }
+
     public int getIdProveedor() {
         return idProveedor;
     }

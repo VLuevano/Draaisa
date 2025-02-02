@@ -4,10 +4,19 @@ import com.draaisa.database.DatabaseConnection;
 import com.draaisa.model.Categoria;
 import com.draaisa.model.Proveedor;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ProveedorController {
 
@@ -184,22 +193,22 @@ public class ProveedorController {
     public void eliminarProveedor(int idProveedor) {
         String sqlEliminarCategoria = "DELETE FROM proveedorcategoria WHERE idproveedor = ?";
         String sqlEliminarProveedor = "DELETE FROM proveedor WHERE idProveedor = ?";
-    
+
         try (Connection conn = DatabaseConnection.getConnection()) {
             // Iniciar una transacción
             conn.setAutoCommit(false);
-    
+
             try (PreparedStatement stmtCategoria = conn.prepareStatement(sqlEliminarCategoria);
-                 PreparedStatement stmtProveedor = conn.prepareStatement(sqlEliminarProveedor)) {
-    
+                    PreparedStatement stmtProveedor = conn.prepareStatement(sqlEliminarProveedor)) {
+
                 // Eliminar las categorías asociadas con el proveedor
                 stmtCategoria.setInt(1, idProveedor);
                 stmtCategoria.executeUpdate();
-    
+
                 // Eliminar el proveedor
                 stmtProveedor.setInt(1, idProveedor);
                 stmtProveedor.executeUpdate();
-    
+
                 // Si todo va bien, confirmar la transacción
                 conn.commit();
                 System.out.println("Proveedor y su categoría eliminados exitosamente.");
@@ -214,7 +223,6 @@ public class ProveedorController {
             System.out.println("Error al eliminar proveedor.");
         }
     }
-    
 
     // Método para consultar todos los proveedores
     public List<Proveedor> consultarTodosProveedores() {
@@ -249,4 +257,83 @@ public class ProveedorController {
         }
         return proveedores;
     }
+
+
+    // Método para registrar proveedor desde archivo Excel
+    public void registrarProveedorDesdeExcel(File excelFile) {
+        try (FileInputStream fis = new FileInputStream(excelFile);
+                Workbook workbook = new XSSFWorkbook(fis)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0)
+                    continue;
+
+                try {
+                    // Usar el método obtenerValorCelda para obtener los valores de las celdas
+                    String nombre = getStringCellValue(row.getCell(0));
+                    String cp = getStringCellValue(row.getCell(1));
+                    String noExt = getStringCellValue(row.getCell(2));
+                    String noInt = getStringCellValue(row.getCell(3));
+                    String rfc = getStringCellValue(row.getCell(4));
+                    String municipio = getStringCellValue(row.getCell(5));
+                    String estado = getStringCellValue(row.getCell(6));
+                    String calle = getStringCellValue(row.getCell(7));
+                    String colonia = getStringCellValue(row.getCell(8));
+                    String ciudad = getStringCellValue(row.getCell(9));
+                    String pais = getStringCellValue(row.getCell(10));
+                    String telefono = getStringCellValue(row.getCell(11));
+                    String correo = getStringCellValue(row.getCell(12));
+                    String curp = getStringCellValue(row.getCell(13));
+                    boolean esFisica = Boolean.parseBoolean(getStringCellValue(row.getCell(14)));
+
+                    Proveedor proveedor = new Proveedor(0, nombre, Integer.parseInt(cp), Integer.parseInt(noExt),
+                            Integer.parseInt(noInt), rfc, municipio, estado, calle, colonia, ciudad, pais, telefono,
+                            correo, curp, esFisica);
+
+                    List<Categoria> categorias = new ArrayList<>();
+                    for (int i = 15; i < row.getLastCellNum(); i++) {
+                        Cell cell = row.getCell(i, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                        if (cell != null && cell.getCellType() == CellType.STRING) {
+                            String categoriaNombre = getStringCellValue(cell).trim();
+                            if (!categoriaNombre.isEmpty()) {
+                                // Directamente se agrega la categoría sin obtener el ID
+                                categorias.add(new Categoria(0, categoriaNombre, "Descripción de " + categoriaNombre));
+                                System.out.println("Categoría " + categoriaNombre + " registrada.");
+                            }
+                        }
+                    }
+
+                    // Ahora solo llamas al método registrarProveedor una sola vez
+                    registrarProveedor(proveedor, categorias);
+
+                } catch (Exception e) {
+                    System.out.println("Error procesando fila " + row.getRowNum() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("Proveedores registrados desde el archivo Excel.");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error al leer el archivo Excel.");
+        }
+    }
+
+    private String getStringCellValue(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                return String.valueOf((int) cell.getNumericCellValue());
+            case BLANK:
+                return "";
+            default:
+                return "";
+        }
+    }
+
 }

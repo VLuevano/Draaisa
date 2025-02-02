@@ -48,6 +48,13 @@
       <version>42.7.5</version>
     </dependency>
 
+    <dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi-ooxml</artifactId>
+    <version>5.2.3</version>
+</dependency>
+
+
     <!-- JUnit para pruebas -->
     <dependency>
       <groupId>junit</groupId>

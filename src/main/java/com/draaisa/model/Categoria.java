@@ -11,6 +11,10 @@ public class Categoria {
         this.descripcionCategoria = descripcionCategoria;
     }
 
+    public Categoria(String categoriaNombre, String string) {
+        //TODO Auto-generated constructor stub
+    }
+
     // Getters y setters
     public int getIdCategoria() {
         return idCategoria;
