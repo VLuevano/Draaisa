@@ -37,24 +37,48 @@ public class MenuPrincipalScreen {
         menuArchivo.getItems().add(cerrarSesion);
 
         Menu menuProductos = new Menu("Productos");
+
         Menu menuProveedores = new Menu("Proveedores");
         MenuItem abrirProveedores = new MenuItem("Gestión de Proveedores");
         abrirProveedores.setOnAction(e -> {
-            // Crea una instancia de ProveedorView pasando el usuario actual
             new ProveedorView(usuarioActual).start(primaryStage);
         });
         menuProveedores.getItems().add(abrirProveedores);
 
         Menu menuClientes = new Menu("Clientes");
+        MenuItem abrirClientes = new MenuItem("Gestión de Clientes");
+        abrirClientes.setOnAction(e -> {
+            new ClienteView(usuarioActual).start(primaryStage);
+        });
+        menuClientes.getItems().add(abrirClientes);
+
         Menu menuFabricantes = new Menu("Fabricantes");
+        MenuItem abrirFabricantes = new MenuItem("Gestión de Fabricantes");
+        abrirFabricantes.setOnAction(e -> {
+            new FabricanteView(usuarioActual).start(primaryStage);
+        });
+        menuFabricantes.getItems().add(abrirFabricantes);
+
+        Menu menuMercado = new Menu("Empresas del Mercado");
+        MenuItem abrirEmpresas = new MenuItem("Gestión de Empresas");
+        abrirEmpresas.setOnAction(e -> {
+            new EmpresaView(usuarioActual).start(primaryStage);
+        });
+        menuMercado.getItems().add(abrirEmpresas);
+
         Menu menuPrestadores = new Menu("Prestadores de Servicios");
 
         Menu menuUsuarios = new Menu("Usuarios");
         if (UsuarioController.tienePermiso(usuarioActual)) {
-            menuUsuarios.getItems().add(new MenuItem("Gestión de Usuarios"));
+            MenuItem abrirUsuario = new MenuItem("Gestión de Usuarios");
+            abrirUsuario.setOnAction(e -> {
+                new UsuarioView(usuarioActual).start(primaryStage);
+            });
+            menuUsuarios.getItems().add(abrirUsuario);
         }
 
         menuBar.getMenus().addAll(menuArchivo, menuProductos, menuProveedores, menuClientes, menuFabricantes,
+                menuMercado,
                 menuPrestadores,
                 menuUsuarios);
 

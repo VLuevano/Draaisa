@@ -235,7 +235,5 @@ public class Proveedor {
 
     public void setCategoriasAsString(String categoriasAsString) {
         this.categoriasAsString = categoriasAsString;
-    }
-    
-    
+    }  
 }

@@ -1,9 +1,9 @@
 package com.draaisa.view;
 
-import com.draaisa.controller.ProveedorController;
+import com.draaisa.controller.EmpresaController;
 import com.draaisa.database.DatabaseConnection;
 import com.draaisa.model.Categoria;
-import com.draaisa.model.Proveedor;
+import com.draaisa.model.Empresa;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -23,15 +23,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProveedorView extends Application {
+public class EmpresaView extends Application {
 
-    private ProveedorController controller = new ProveedorController();
+    private EmpresaController controller = new EmpresaController();
 
     private String usuarioActual;
 
-    private TableView<Proveedor> tableView;
+    private TableView<Empresa> tableView;
 
-    public ProveedorView(String usuarioActual) {
+    public EmpresaView(String usuarioActual) {
         this.usuarioActual = usuarioActual; // Guardamos el usuario actual
     }
 
@@ -41,14 +41,14 @@ public class ProveedorView extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Módulo de Proveedores");
+        primaryStage.setTitle("Módulo de Empresas");
 
         // Crear menú
         MenuBar menuBar = new MenuBar();
 
         Menu menu = new Menu("Opciones");
-        MenuItem registroItem = new MenuItem("Registrar Proveedor");
-        MenuItem consultarItem = new MenuItem("Consultar Proveedores");
+        MenuItem registroItem = new MenuItem("Registrar Empresa");
+        MenuItem consultarItem = new MenuItem("Consultar Empresas");
         MenuItem salirItem = new MenuItem("Salir");
 
         menu.getItems().addAll(registroItem, consultarItem, salirItem);
@@ -82,7 +82,7 @@ public class ProveedorView extends Application {
         primaryStage.show();
     }
 
-    // Registrar proveedores
+    // Registrar empresas
     private void showRegistroForm(VBox vbox) throws IOException {
         vbox.getChildren().clear();
 
@@ -92,11 +92,11 @@ public class ProveedorView extends Application {
         stage.setHeight(700);
 
         // Título del apartado
-        Label titleLabel = new Label("Registrar Proveedor");
+        Label titleLabel = new Label("Registrar Empresa");
         titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-padding: 10px;");
 
         // Crear campos de texto con Labels
-        Label nombreLabel = new Label("Nombre del proveedor:");
+        Label nombreLabel = new Label("Nombre del empresa:");
         TextField nombreField = new TextField();
 
         Label rfcLabel = new Label("RFC:");
@@ -174,7 +174,7 @@ public class ProveedorView extends Application {
 
         // Botón para cargar archivo Excel
         Button cargarExcelButton = new Button("Cargar archivo Excel");
-        cargarExcelButton.setOnAction(e -> cargarProveedoresDesdeExcel());
+        cargarExcelButton.setOnAction(e -> cargarEmpresasDesdeExcel());
 
         // Crear botón para registrar
         Button registrarButton = new Button("Registrar");
@@ -211,12 +211,12 @@ public class ProveedorView extends Application {
                 return;
             }
 
-            // Registrar proveedor
+            // Registrar empresa
             int cpInt = Integer.parseInt(cp);
             int noExtInt = Integer.parseInt(noExt);
             int noIntInt = noInt.isEmpty() ? 0 : Integer.parseInt(noInt);
 
-            Proveedor proveedor = new Proveedor(0, nombre, cpInt, noExtInt, noIntInt, rfc, municipio, estado, calle,
+            Empresa empresa = new Empresa(0, nombre, cpInt, noExtInt, noIntInt, rfc, municipio, estado, calle,
                     colonia, ciudad, pais, telefono, correo, curp, esPersonaFisica);
             List<Categoria> categorias = new ArrayList<>();
 
@@ -225,8 +225,8 @@ public class ProveedorView extends Application {
                 categorias.add(new Categoria(0, categoriaSeleccionada, "Descripción"));
             }
 
-            controller.registrarProveedor(proveedor, categorias);
-            showAlert(Alert.AlertType.INFORMATION, "Proveedor registrado con éxito.");
+            controller.registrarEmpresa(empresa, categorias);
+            showAlert(Alert.AlertType.INFORMATION, "Empresa registrado con éxito.");
         });
 
         ScrollPane scrollPane = new ScrollPane();
@@ -336,7 +336,7 @@ public class ProveedorView extends Application {
         newStage.show();
     }
 
-    // Consultar proveedores
+    // Consultar empresas
     @SuppressWarnings("unchecked")
     private void showConsultarForm(VBox vbox) {
         vbox.getChildren().clear();
@@ -356,56 +356,56 @@ public class ProveedorView extends Application {
         // Crear el TableView
         tableView = new TableView<>();
 
-        // Crear columnas para cada atributo del proveedor
-        TableColumn<Proveedor, Integer> idColumn = new TableColumn<>("ID");
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("idProveedor"));
+        // Crear columnas para cada atributo del empresa
+        TableColumn<Empresa, Integer> idColumn = new TableColumn<>("ID");
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("idEmpresa"));
 
-        TableColumn<Proveedor, String> nombreColumn = new TableColumn<>("Nombre");
-        nombreColumn.setCellValueFactory(new PropertyValueFactory<>("nombreProv"));
+        TableColumn<Empresa, String> nombreColumn = new TableColumn<>("Nombre");
+        nombreColumn.setCellValueFactory(new PropertyValueFactory<>("nombreEmpresa"));
 
-        TableColumn<Proveedor, String> rfcColumn = new TableColumn<>("RFC");
-        rfcColumn.setCellValueFactory(new PropertyValueFactory<>("rfcProveedor"));
+        TableColumn<Empresa, String> rfcColumn = new TableColumn<>("RFC");
+        rfcColumn.setCellValueFactory(new PropertyValueFactory<>("rfcEmpresa"));
 
-        TableColumn<Proveedor, String> telefonoColumn = new TableColumn<>("Teléfono");
-        telefonoColumn.setCellValueFactory(new PropertyValueFactory<>("telefonoProv"));
+        TableColumn<Empresa, String> telefonoColumn = new TableColumn<>("Teléfono");
+        telefonoColumn.setCellValueFactory(new PropertyValueFactory<>("telefonoEmpresa"));
 
-        TableColumn<Proveedor, Integer> cpColumn = new TableColumn<>("Código Postal");
-        cpColumn.setCellValueFactory(new PropertyValueFactory<>("cpProveedor"));
+        TableColumn<Empresa, Integer> cpColumn = new TableColumn<>("Código Postal");
+        cpColumn.setCellValueFactory(new PropertyValueFactory<>("cpEmpresa"));
 
-        TableColumn<Proveedor, Integer> noExtColumn = new TableColumn<>("Número Exterior");
-        noExtColumn.setCellValueFactory(new PropertyValueFactory<>("noExtProv"));
+        TableColumn<Empresa, Integer> noExtColumn = new TableColumn<>("Número Exterior");
+        noExtColumn.setCellValueFactory(new PropertyValueFactory<>("noExtEmpresa"));
 
-        TableColumn<Proveedor, Integer> noIntColumn = new TableColumn<>("Número Interior");
-        noIntColumn.setCellValueFactory(new PropertyValueFactory<>("noIntProv"));
+        TableColumn<Empresa, Integer> noIntColumn = new TableColumn<>("Número Interior");
+        noIntColumn.setCellValueFactory(new PropertyValueFactory<>("noIntEmpresa"));
 
-        TableColumn<Proveedor, String> calleColumn = new TableColumn<>("Calle");
+        TableColumn<Empresa, String> calleColumn = new TableColumn<>("Calle");
         calleColumn.setCellValueFactory(new PropertyValueFactory<>("calle"));
 
-        TableColumn<Proveedor, String> coloniaColumn = new TableColumn<>("Colonia");
+        TableColumn<Empresa, String> coloniaColumn = new TableColumn<>("Colonia");
         coloniaColumn.setCellValueFactory(new PropertyValueFactory<>("colonia"));
 
-        TableColumn<Proveedor, String> ciudadColumn = new TableColumn<>("Ciudad");
+        TableColumn<Empresa, String> ciudadColumn = new TableColumn<>("Ciudad");
         ciudadColumn.setCellValueFactory(new PropertyValueFactory<>("ciudad"));
 
-        TableColumn<Proveedor, String> municipioColumn = new TableColumn<>("Municipio");
+        TableColumn<Empresa, String> municipioColumn = new TableColumn<>("Municipio");
         municipioColumn.setCellValueFactory(new PropertyValueFactory<>("municipio"));
 
-        TableColumn<Proveedor, String> estadoColumn = new TableColumn<>("Estado");
+        TableColumn<Empresa, String> estadoColumn = new TableColumn<>("Estado");
         estadoColumn.setCellValueFactory(new PropertyValueFactory<>("estado"));
 
-        TableColumn<Proveedor, String> paisColumn = new TableColumn<>("País");
+        TableColumn<Empresa, String> paisColumn = new TableColumn<>("País");
         paisColumn.setCellValueFactory(new PropertyValueFactory<>("pais"));
 
-        TableColumn<Proveedor, String> correoColumn = new TableColumn<>("Correo");
-        correoColumn.setCellValueFactory(new PropertyValueFactory<>("correoProv"));
+        TableColumn<Empresa, String> correoColumn = new TableColumn<>("Correo");
+        correoColumn.setCellValueFactory(new PropertyValueFactory<>("correoEmpresa"));
 
-        TableColumn<Proveedor, String> curpColumn = new TableColumn<>("CURP");
+        TableColumn<Empresa, String> curpColumn = new TableColumn<>("CURP");
         curpColumn.setCellValueFactory(new PropertyValueFactory<>("curp"));
 
-        TableColumn<Proveedor, String> personaFisicaColumn = new TableColumn<>("Es Persona Física");
+        TableColumn<Empresa, String> personaFisicaColumn = new TableColumn<>("Es Persona Física");
         personaFisicaColumn.setCellValueFactory(new PropertyValueFactory<>("esPersonaFisica"));
 
-        TableColumn<Proveedor, String> categoriasColumn = new TableColumn<>("Categorías");
+        TableColumn<Empresa, String> categoriasColumn = new TableColumn<>("Categorías");
         categoriasColumn.setCellValueFactory(new PropertyValueFactory<>("categoriasAsString"));
         categoriasColumn.setResizable(true);
         categoriasColumn.setPrefWidth(350);
@@ -415,22 +415,22 @@ public class ProveedorView extends Application {
                 noIntColumn, calleColumn, coloniaColumn, ciudadColumn, municipioColumn, estadoColumn, paisColumn,
                 correoColumn, curpColumn, personaFisicaColumn, categoriasColumn);
 
-        List<Proveedor> proveedoresIniciales = controller.consultarTodosProveedores();
+        List<Empresa> empresasIniciales = controller.consultarTodosEmpresas();
 
-        tableView.getItems().setAll(proveedoresIniciales);
+        tableView.getItems().setAll(empresasIniciales);
 
         // Crear un filtro para la búsqueda
         filtroField.textProperty().addListener((observable, oldValue, newValue) -> {
-            // Buscar proveedores con los filtros proporcionados
-            List<Proveedor> proveedoresFiltrados = controller.buscarProveedores(newValue);
+            // Buscar empresas con los filtros proporcionados
+            List<Empresa> empresasFiltrados = controller.buscarEmpresas(newValue);
 
-            // Actualizar la tabla con los proveedores filtrados
-            tableView.getItems().setAll(proveedoresFiltrados);
+            // Actualizar la tabla con los empresas filtrados
+            tableView.getItems().setAll(empresasFiltrados);
         });
 
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                mostrarVentanaEdicionProveedor(newValue);
+                mostrarVentanaEdicionEmpresa(newValue);
             }
         });
 
@@ -449,28 +449,28 @@ public class ProveedorView extends Application {
         menuPrincipalScreen.mostrarMenu(); // Mostrar el menú principal
     }
 
-    public void mostrarVentanaEdicionProveedor(Proveedor proveedorSeleccionado) {
+    public void mostrarVentanaEdicionEmpresa(Empresa empresaseleccionado) {
         // Crear los campos de texto para editar
-        TextField nombreField = new TextField(proveedorSeleccionado.getNombreProv());
-        TextField rfcField = new TextField(proveedorSeleccionado.getRfcProveedor());
-        TextField telefonoField = new TextField(proveedorSeleccionado.getTelefonoProv());
-        TextField cpField = new TextField(String.valueOf(proveedorSeleccionado.getCpProveedor()));
-        TextField noExtField = new TextField(String.valueOf(proveedorSeleccionado.getNoExtProv()));
-        TextField noIntField = new TextField(String.valueOf(proveedorSeleccionado.getNoIntProv()));
-        TextField calleField = new TextField(proveedorSeleccionado.getCalle());
-        TextField coloniaField = new TextField(proveedorSeleccionado.getColonia());
-        TextField ciudadField = new TextField(proveedorSeleccionado.getCiudad());
-        TextField municipioField = new TextField(proveedorSeleccionado.getMunicipio());
-        TextField estadoField = new TextField(proveedorSeleccionado.getEstado());
-        TextField paisField = new TextField(proveedorSeleccionado.getPais());
-        TextField correoField = new TextField(proveedorSeleccionado.getCorreoProv());
-        TextField curpField = new TextField(proveedorSeleccionado.getCurp());
+        TextField nombreField = new TextField(empresaseleccionado.getNombreEmpresa());
+        TextField rfcField = new TextField(empresaseleccionado.getRfcEmpresa());
+        TextField telefonoField = new TextField(empresaseleccionado.getTelefonoEmpresa());
+        TextField cpField = new TextField(String.valueOf(empresaseleccionado.getCpEmpresa()));
+        TextField noExtField = new TextField(String.valueOf(empresaseleccionado.getNoExtEmpresa()));
+        TextField noIntField = new TextField(String.valueOf(empresaseleccionado.getNoIntEmpresa()));
+        TextField calleField = new TextField(empresaseleccionado.getCalle());
+        TextField coloniaField = new TextField(empresaseleccionado.getColonia());
+        TextField ciudadField = new TextField(empresaseleccionado.getCiudad());
+        TextField municipioField = new TextField(empresaseleccionado.getMunicipio());
+        TextField estadoField = new TextField(empresaseleccionado.getEstado());
+        TextField paisField = new TextField(empresaseleccionado.getPais());
+        TextField correoField = new TextField(empresaseleccionado.getCorreoEmpresa());
+        TextField curpField = new TextField(empresaseleccionado.getCurp());
         CheckBox personaFisicaCheck = new CheckBox();
-        personaFisicaCheck.setSelected(proveedorSeleccionado.isEsPersonaFisica());
+        personaFisicaCheck.setSelected(empresaseleccionado.isEsPersonaFisica());
 
         // Crear botones de acción
         Button guardarButton = new Button("Guardar cambios");
-        Button eliminarButton = new Button("Eliminar proveedor");
+        Button eliminarButton = new Button("Eliminar empresa");
 
         // Evento para guardar cambios
         guardarButton.setOnAction(e -> {
@@ -479,9 +479,9 @@ public class ProveedorView extends Application {
                 return;
             }
 
-            // Crear un nuevo proveedor con los datos editados
-            Proveedor proveedorEditado = new Proveedor(
-                    proveedorSeleccionado.getIdProveedor(), // ID no cambia
+            // Crear un nuevo empresa con los datos editados
+            Empresa empresaEditado = new Empresa(
+                    empresaseleccionado.getIdEmpresa(), // ID no cambia
                     nombreField.getText(),
                     Integer.parseInt(cpField.getText()),
                     Integer.parseInt(noExtField.getText()),
@@ -498,27 +498,27 @@ public class ProveedorView extends Application {
                     curpField.getText(),
                     personaFisicaCheck.isSelected());
 
-            // Llamar al método del controlador para actualizar el proveedor
-            controller.modificarProveedor(proveedorEditado);
+            // Llamar al método del controlador para actualizar el empresa
+            controller.modificarEmpresa(empresaEditado);
 
-            actualizarTablaProveedores(tableView);
+            actualizarTablaEmpresas(tableView);
             // Cerrar la ventana
             ((Stage) guardarButton.getScene().getWindow()).close();
         });
 
-        // Evento para eliminar proveedor
+        // Evento para eliminar empresa
         eliminarButton.setOnAction(e -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Confirmar eliminación");
-            alert.setHeaderText("¿Estás seguro de eliminar este proveedor?");
+            alert.setHeaderText("¿Estás seguro de eliminar este empresa?");
             alert.setContentText("Esta acción no se puede deshacer.");
             alert.showAndWait().ifPresent(response -> {
                 if (response == ButtonType.OK) {
-                    // Eliminar proveedor en la base de datos
-                    controller.eliminarProveedor(proveedorSeleccionado.getIdProveedor());
+                    // Eliminar empresa en la base de datos
+                    controller.eliminarEmpresa(empresaseleccionado.getIdEmpresa());
 
                     // Actualizar la tabla
-                    actualizarTablaProveedores(tableView);
+                    actualizarTablaEmpresas(tableView);
 
                     // Cerrar la ventana
                     ((Stage) eliminarButton.getScene().getWindow()).close();
@@ -557,7 +557,7 @@ public class ProveedorView extends Application {
         // Crear la escena con el ScrollPane
         Scene scene = new Scene(scrollPane, 400, 600);
         Stage ventanaEdicion = new Stage();
-        ventanaEdicion.setTitle("Editar Proveedor");
+        ventanaEdicion.setTitle("Editar Empresa");
 
         // Establecer un borde y relleno para darle formato a la ventana
         ventanaEdicion.setScene(scene);
@@ -565,9 +565,9 @@ public class ProveedorView extends Application {
         ventanaEdicion.show();
     }
 
-    private void actualizarTablaProveedores(TableView<Proveedor> tableView) {
-        List<Proveedor> proveedoresActualizados = controller.consultarTodosProveedores();
-        tableView.getItems().setAll(proveedoresActualizados);
+    private void actualizarTablaEmpresas(TableView<Empresa> tableView) {
+        List<Empresa> empresasActualizados = controller.consultarTodosEmpresas();
+        tableView.getItems().setAll(empresasActualizados);
     }
 
     private boolean validarCampos(TextField nombre, TextField rfc, TextField telefono, TextField cp, TextField correo,
@@ -604,7 +604,7 @@ public class ProveedorView extends Application {
         return true;
     }
 
-    private void cargarProveedoresDesdeExcel() {
+    private void cargarEmpresasDesdeExcel() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos Excel", "*.xlsx"));
         File file = fileChooser.showOpenDialog(null);
@@ -612,11 +612,11 @@ public class ProveedorView extends Application {
         if (file != null) {
             try {
                 // Crear instancia del controlador
-                ProveedorController controller = new ProveedorController();
+                EmpresaController controller = new EmpresaController();
 
-                controller.registrarProveedorDesdeExcel(file);
+                controller.registrarEmpresaDesdeExcel(file);
 
-                showAlert(Alert.AlertType.INFORMATION, "Proveedores registrados desde Excel.");
+                showAlert(Alert.AlertType.INFORMATION, "Empresas registrados desde Excel.");
             } catch (Exception e) {
                 e.printStackTrace();
                 showAlert(Alert.AlertType.ERROR, "Error al procesar el archivo Excel: " + e.getMessage());

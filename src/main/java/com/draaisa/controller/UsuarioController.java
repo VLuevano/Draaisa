@@ -45,21 +45,29 @@ public class UsuarioController {
 
     // Método para registrar un nuevo usuario
     public static boolean registrarUsuario(Usuario usuario) {
-        String query = "INSERT INTO usuario (idusuario, nombreusuario, contrasenausuario, permiso) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO usuario (nombreusuario, contrasenausuario, permiso) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(query)) {
-
-            stmt.setInt(1, usuario.getIdUsuario());
-            stmt.setString(2, usuario.getNombreUsuario());
-            stmt.setString(3, usuario.getContrasenaUsuario());
-            stmt.setBoolean(4, usuario.isPermiso()); // Añadir el valor del permiso
-
-            return stmt.executeUpdate() > 0; // Retorna true si se agregó un usuario
+             PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+    
+            stmt.setString(1, usuario.getNombreUsuario());
+            stmt.setString(2, usuario.getContrasenaUsuario());
+            stmt.setBoolean(3, usuario.isPermiso());
+    
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        usuario.setIdUsuario(generatedKeys.getInt(1)); // Asigna el nuevo ID al usuario
+                    }
+                }
+                return true;
+            }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
         return false;
     }
+    
 
     // Método para eliminar un usuario
     public static boolean eliminarUsuario(int idUsuario) {

@@ -2,7 +2,7 @@ package com.draaisa.controller;
 
 import com.draaisa.database.DatabaseConnection;
 import com.draaisa.model.Categoria;
-import com.draaisa.model.Proveedor;
+import com.draaisa.model.Cliente;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,49 +20,50 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class ProveedorController {
+public class ClienteController {
 
-    // Método para registrar proveedor desde formulario
-    public void registrarProveedor(Proveedor proveedor, List<Categoria> categorias) {
-        String sqlProveedor = "INSERT INTO proveedor (nombreprov, cpProveedor, noExtProv, noIntProv, rfcProveedor, municipio, estado, calle, colonia, ciudad, pais, telefonoProv, correoProv, curpproveedor, pfisicaproveedor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idProveedor";
+    // Método para registrar cliente desde formulario
+    public void registrarCliente(Cliente cliente, List<Categoria> categorias) {
+        String sqlCliente = "INSERT INTO cliente (nombrecliente, nombrefcliente, cpcliente, noExtCliente, noIntCliente, rfcCliente, municipio, estado, calle, colonia, ciudad, pais, telefonoCliente, correoCliente, curpCliente, pfisicaCliente) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idCliente";
 
         try (Connection conn = DatabaseConnection.getConnection();
-                PreparedStatement stmtProveedor = conn.prepareStatement(sqlProveedor,
+                PreparedStatement stmtCliente = conn.prepareStatement(sqlCliente,
                         Statement.RETURN_GENERATED_KEYS)) {
 
-            stmtProveedor.setString(1, proveedor.getNombreProv());
-            stmtProveedor.setInt(2, proveedor.getCpProveedor());
-            stmtProveedor.setInt(3, proveedor.getNoExtProv());
-            stmtProveedor.setInt(4, proveedor.getNoIntProv());
-            stmtProveedor.setString(5, proveedor.getRfcProveedor());
-            stmtProveedor.setString(6, proveedor.getMunicipio());
-            stmtProveedor.setString(7, proveedor.getEstado());
-            stmtProveedor.setString(8, proveedor.getCalle());
-            stmtProveedor.setString(9, proveedor.getColonia());
-            stmtProveedor.setString(10, proveedor.getCiudad());
-            stmtProveedor.setString(11, proveedor.getPais());
-            stmtProveedor.setString(12, proveedor.getTelefonoProv());
-            stmtProveedor.setString(13, proveedor.getCorreoProv());
-            stmtProveedor.setString(14, proveedor.getCurp());
-            stmtProveedor.setBoolean(15, proveedor.isEsPersonaFisica());
-            stmtProveedor.executeUpdate();
+            stmtCliente.setString(1, cliente.getNombreCliente());
+            stmtCliente.setString(2, cliente.getNombreFiscal());
+            stmtCliente.setInt(3, cliente.getCpCliente());
+            stmtCliente.setInt(4, cliente.getNoExtCliente());
+            stmtCliente.setInt(5, cliente.getNoIntCliente());
+            stmtCliente.setString(6, cliente.getRfcCliente());
+            stmtCliente.setString(7, cliente.getMunicipio());
+            stmtCliente.setString(8, cliente.getEstado());
+            stmtCliente.setString(9, cliente.getCalle());
+            stmtCliente.setString(10, cliente.getColonia());
+            stmtCliente.setString(11, cliente.getCiudad());
+            stmtCliente.setString(12, cliente.getPais());
+            stmtCliente.setString(13, cliente.getTelefonoCliente());
+            stmtCliente.setString(14, cliente.getCorreoCliente());
+            stmtCliente.setString(15, cliente.getCurp());
+            stmtCliente.setBoolean(16, cliente.isEsPersonaFisica());
+            stmtCliente.executeUpdate();
 
-            ResultSet generatedKeys = stmtProveedor.getGeneratedKeys();
-            int idProveedor = -1;
+            ResultSet generatedKeys = stmtCliente.getGeneratedKeys();
+            int idCliente = -1;
             if (generatedKeys.next()) {
-                idProveedor = generatedKeys.getInt(1);
+                idCliente = generatedKeys.getInt(1);
             }
 
             for (Categoria categoria : categorias) {
                 int idCategoria = obtenerOCrearCategoria(categoria);
-                asociarProveedorConCategoria(idProveedor, idCategoria);
+                asociarClienteConCategoria(idCliente, idCategoria);
             }
 
-            System.out.println("Proveedor registrado exitosamente.");
+            System.out.println("Cliente registrado exitosamente.");
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Error al registrar proveedor.");
+            System.out.println("Error al registrar cliente.");
         }
     }
 
@@ -93,54 +94,55 @@ public class ProveedorController {
         return -1;
     }
 
-    // Método para asociar proveedor con categoría
-    private void asociarProveedorConCategoria(int idProveedor, int idCategoria) throws SQLException, IOException {
-        String sql = "INSERT INTO proveedorcategoria (idproveedor, idcategoria) VALUES (?, ?) ON CONFLICT DO NOTHING";
+    // Método para asociar cliente con categoría
+    private void asociarClienteConCategoria(int idCliente, int idCategoria) throws SQLException, IOException {
+        String sql = "INSERT INTO clientecategoria (idcliente, idcategoria) VALUES (?, ?) ON CONFLICT DO NOTHING";
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idProveedor);
+            stmt.setInt(1, idCliente);
             stmt.setInt(2, idCategoria);
             stmt.executeUpdate();
         }
     }
 
-    // Método para modificar un proveedor
-    public void modificarProveedor(Proveedor proveedor) {
-        String sql = "UPDATE proveedor SET nombreprov = ?, cpproveedor = ?, noExtProv = ?, noIntProv = ?, rfcProveedor = ?, municipio = ?, estado = ?, calle = ?, colonia = ?, ciudad = ?, pais = ?, telefonoProv = ?, correoprov = ?, curpproveedor = ?, pfisicaproveedor = ? WHERE idproveedor = ?";
+    // Método para modificar un cliente
+    public void modificarCliente(Cliente cliente) {
+        String sql = "UPDATE cliente SET nombrecliente = ?, nombrefcliente = ?, cpcliente = ?, noExtCliente = ?, noIntCliente = ?, rfcCliente = ?, municipio = ?, estado = ?, calle = ?, colonia = ?, ciudad = ?, pais = ?, telefonoCliente = ?, correocliente = ?, curpCliente = ?, pfisicaCliente = ? WHERE idcliente = ?";
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, proveedor.getNombreProv());
-            stmt.setInt(2, proveedor.getCpProveedor());
-            stmt.setInt(3, proveedor.getNoExtProv());
-            stmt.setInt(4, proveedor.getNoIntProv());
-            stmt.setString(5, proveedor.getRfcProveedor());
-            stmt.setString(6, proveedor.getMunicipio());
-            stmt.setString(7, proveedor.getEstado());
-            stmt.setString(8, proveedor.getCalle());
-            stmt.setString(9, proveedor.getColonia());
-            stmt.setString(10, proveedor.getCiudad());
-            stmt.setString(11, proveedor.getPais());
-            stmt.setString(12, proveedor.getTelefonoProv());
-            stmt.setString(13, proveedor.getCorreoProv());
-            stmt.setString(14, proveedor.getCurp());
-            stmt.setBoolean(15, proveedor.isEsPersonaFisica());
-            stmt.setInt(16, proveedor.getIdProveedor());
+            stmt.setString(1, cliente.getNombreCliente());
+            stmt.setString(2, cliente.getNombreFiscal());
+            stmt.setInt(3, cliente.getCpCliente());
+            stmt.setInt(4, cliente.getNoExtCliente());
+            stmt.setInt(5, cliente.getNoIntCliente());
+            stmt.setString(6, cliente.getRfcCliente());
+            stmt.setString(7, cliente.getMunicipio());
+            stmt.setString(8, cliente.getEstado());
+            stmt.setString(9, cliente.getCalle());
+            stmt.setString(10, cliente.getColonia());
+            stmt.setString(11, cliente.getCiudad());
+            stmt.setString(12, cliente.getPais());
+            stmt.setString(13, cliente.getTelefonoCliente());
+            stmt.setString(14, cliente.getCorreoCliente());
+            stmt.setString(15, cliente.getCurp());
+            stmt.setBoolean(16, cliente.isEsPersonaFisica());
+            stmt.setInt(17, cliente.getIdCliente());
             stmt.executeUpdate();
 
-            System.out.println("Proveedor actualizado correctamente.");
+            System.out.println("Cliente actualizado correctamente.");
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Error al modificar proveedor.");
+            System.out.println("Error al modificar cliente.");
         }
     }
 
-    public List<Proveedor> buscarProveedores(String filtro) {
-        List<Proveedor> proveedores = new ArrayList<>();
+    public List<Cliente> buscarClientes(String filtro) {
+        List<Cliente> clientes = new ArrayList<>();
         String[] filtros = filtro.split(","); // Separar por comas
 
-        // Crear condiciones dinámicas para la búsqueda de proveedores
-        StringBuilder sql = new StringBuilder("SELECT p.* FROM proveedor p WHERE ");
+        // Crear condiciones dinámicas para la búsqueda de clientes
+        StringBuilder sql = new StringBuilder("SELECT cl.* FROM cliente cl WHERE ");
         List<String> condiciones = new ArrayList<>();
 
         // Condiciones de búsqueda por cada filtro
@@ -148,22 +150,22 @@ public class ProveedorController {
             palabra = palabra.trim();
 
             if (palabra.matches("\\d+")) { // Filtrar por ID
-                condiciones.add("p.idProveedor = ?");
+                condiciones.add("cl.idCliente = ?");
             } else if (palabra.matches("[a-zA-Z]+")) { // Filtrar por categoría
                 condiciones.add(
-                        "p.idProveedor IN (SELECT pc.idProveedor FROM proveedorcategoria pc INNER JOIN categoria c ON pc.idCategoria = c.idCategoria WHERE c.nombreCategoria ILIKE ?)");
+                        "cl.idCliente IN (SELECT cl.idCliente FROM clientecategoria ca INNER JOIN categoria c ON ca.idCategoria = c.idCategoria WHERE c.nombreCategoria ILIKE ?)");
             } else if (palabra.matches("\\d{10}")) { // Filtrar por teléfono
-                condiciones.add("p.telefonoProv = ?");
+                condiciones.add("cl.telefonoCliente = ?");
             } else if (palabra.matches("[A-Za-z0-9]{13}")) { // Filtrar por RFC
-                condiciones.add("p.rfcProveedor = ?");
+                condiciones.add("cl.rfcCliente = ?");
             } else {
                 // Filtrar por nombre, estado, municipio
                 condiciones.add(
-                        "p.nombreprov ILIKE ? OR p.estado ILIKE ? OR p.municipio ILIKE ? OR p.rfcProveedor ILIKE ?");
+                        "cl.nombreCliente ILIKE ? OR cl.estado ILIKE ? OR cl.municipio ILIKE ? OR cl.rfcCliente ILIKE ?");
             }
         }
 
-        // Si no hay filtros, traer todos los proveedores
+        // Si no hay filtros, traer todos los clientes
         if (condiciones.isEmpty()) {
             sql.append("1=1"); // Agregar condición que siempre es verdadera
         } else {
@@ -197,36 +199,37 @@ public class ProveedorController {
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                Proveedor proveedor = new Proveedor(
-                        rs.getInt("idProveedor"),
-                        rs.getString("nombreProv"),
-                        rs.getInt("cpProveedor"),
-                        rs.getInt("noExtProv"),
-                        rs.getInt("noIntProv"),
-                        rs.getString("rfcProveedor"),
+                Cliente cliente = new Cliente(
+                        rs.getInt("idCliente"),
+                        rs.getString("nombreCliente"),
+                        rs.getString("nombrefCliente"),
+                        rs.getInt("cpCliente"),
+                        rs.getInt("noExtCliente"),
+                        rs.getInt("noIntCliente"),
+                        rs.getString("rfcCliente"),
                         rs.getString("municipio"),
                         rs.getString("estado"),
                         rs.getString("calle"),
                         rs.getString("colonia"),
                         rs.getString("ciudad"),
                         rs.getString("pais"),
-                        rs.getString("telefonoProv"),
-                        rs.getString("correoProv"),
-                        rs.getString("curpproveedor"),
-                        rs.getBoolean("pfisicaproveedor"));
+                        rs.getString("telefonoCliente"),
+                        rs.getString("correoCliente"),
+                        rs.getString("curpCliente"),
+                        rs.getBoolean("pfisicaCliente"));
 
                 // Inicializar lista de categorías vacía
                 List<Categoria> categorias = new ArrayList<>();
 
-                // Consulta para obtener las categorías asociadas al proveedor
+                // Consulta para obtener las categorías asociadas al clientes
                 String categoriaSql = """
                         SELECT c.idCategoria, c.nombreCategoria
                         FROM categoria c
-                        INNER JOIN proveedorcategoria pc ON c.idCategoria = pc.idCategoria
-                        WHERE pc.idProveedor = ?""";
+                        INNER JOIN clientecategoria ca ON c.idCategoria = ca.idCategoria
+                        WHERE ca.idCliente = ?""";
 
                 try (PreparedStatement stmtCategorias = conn.prepareStatement(categoriaSql)) {
-                    stmtCategorias.setInt(1, proveedor.getIdProveedor());
+                    stmtCategorias.setInt(1, cliente.getIdCliente());
                     ResultSet rsCategorias = stmtCategorias.executeQuery();
 
                     while (rsCategorias.next()) {
@@ -239,103 +242,104 @@ public class ProveedorController {
 
                 // Asignar categorías solo si se encontraron
                 if (!categorias.isEmpty()) {
-                    proveedor.setCategorias(categorias);
+                    cliente.setCategorias(categorias);
                 }
 
-                // Agregar proveedor a la lista
-                proveedores.add(proveedor);
+                // Agregar clientes a la lista
+                clientes.add(cliente);
             }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
 
-        return proveedores;
+        return clientes;
     }
 
-    // Método para eliminar proveedor
-    public void eliminarProveedor(int idProveedor) {
-        String sqlEliminarCategoria = "DELETE FROM proveedorcategoria WHERE idproveedor = ?";
-        String sqlEliminarProveedor = "DELETE FROM proveedor WHERE idProveedor = ?";
+    // Método para eliminar clientees
+    public void eliminarCliente(int idCliente) {
+        String sqlEliminarCategoria = "DELETE FROM clientecategoria WHERE idcliente = ?";
+        String sqlEliminarCliente = "DELETE FROM cliente WHERE idCliente = ?";
 
         try (Connection conn = DatabaseConnection.getConnection()) {
             // Iniciar una transacción
             conn.setAutoCommit(false);
 
             try (PreparedStatement stmtCategoria = conn.prepareStatement(sqlEliminarCategoria);
-                    PreparedStatement stmtProveedor = conn.prepareStatement(sqlEliminarProveedor)) {
+                    PreparedStatement stmtCliente = conn.prepareStatement(sqlEliminarCliente)) {
 
-                // Eliminar las categorías asociadas con el proveedor
-                stmtCategoria.setInt(1, idProveedor);
+                // Eliminar las categorías asociadas con el clientes
+                stmtCategoria.setInt(1, idCliente);
                 stmtCategoria.executeUpdate();
 
-                // Eliminar el proveedor
-                stmtProveedor.setInt(1, idProveedor);
-                stmtProveedor.executeUpdate();
+                // Eliminar el clientes
+                stmtCliente.setInt(1, idCliente);
+                stmtCliente.executeUpdate();
 
                 // Si todo va bien, confirmar la transacción
                 conn.commit();
-                System.out.println("Proveedor y su categoría eliminados exitosamente.");
+                System.out.println("Cliente y su categoría eliminados exitosamente.");
             } catch (SQLException e) {
                 // Si ocurre un error, deshacer la transacción
                 conn.rollback();
                 e.printStackTrace();
-                System.out.println("Error al eliminar proveedor y su categoría.");
+                System.out.println("Error al eliminar cliente y su categoría.");
             }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Error al eliminar proveedor.");
+            System.out.println("Error al eliminar cliente.");
         }
     }
 
-    // Método para consultar todos los proveedores
-    public List<Proveedor> consultarTodosProveedores() {
-        List<Proveedor> proveedores = new ArrayList<>();
-        String sql = "SELECT * FROM proveedor";
+    // Método para consultar todos los clientes
+    public List<Cliente> consultarTodosClientes() {
+        List<Cliente> clientes = new ArrayList<>();
+        String sql = "SELECT * FROM cliente";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             ResultSet rs = stmt.executeQuery();
-            Map<Integer, Proveedor> proveedoresMap = new HashMap<>(); // Usar un mapa para evitar duplicados
+            Map<Integer, Cliente> clientesMap = new HashMap<>(); // Usar un mapa para evitar duplicados
 
             while (rs.next()) {
-                // Crear proveedor
-                Proveedor proveedor = new Proveedor(
-                        rs.getInt("idProveedor"),
-                        rs.getString("nombreProv"),
-                        rs.getInt("cpProveedor"),
-                        rs.getInt("noExtProv"),
-                        rs.getInt("noIntProv"),
-                        rs.getString("rfcProveedor"),
-                        rs.getString("municipio"),
-                        rs.getString("estado"),
-                        rs.getString("calle"),
-                        rs.getString("colonia"),
-                        rs.getString("ciudad"),
-                        rs.getString("pais"),
-                        rs.getString("telefonoProv"),
-                        rs.getString("correoProv"),
-                        rs.getString("curpproveedor"),
-                        rs.getBoolean("pfisicaproveedor"));
+                // Crear cliente
+                Cliente cliente = new Cliente(
+                    rs.getInt("idCliente"),
+                    rs.getString("nombreCliente"),
+                    rs.getString("nombrefCliente"),
+                    rs.getInt("cpCliente"),
+                    rs.getInt("noExtCliente"),
+                    rs.getInt("noIntCliente"),
+                    rs.getString("rfcCliente"),
+                    rs.getString("municipio"),
+                    rs.getString("estado"),
+                    rs.getString("calle"),
+                    rs.getString("colonia"),
+                    rs.getString("ciudad"),
+                    rs.getString("pais"),
+                    rs.getString("telefonoCliente"),
+                    rs.getString("correoCliente"),
+                    rs.getString("curpCliente"),
+                    rs.getBoolean("pfisicaCliente"));
 
-                // Si el proveedor ya está en el mapa, usamos el existente y agregamos las
+                // Si el cliente ya está en el mapa, usamos el existente y agregamos las
                 // categorías
-                Proveedor existingProveedor = proveedoresMap.get(proveedor.getIdProveedor());
-                if (existingProveedor == null) {
-                    proveedoresMap.put(proveedor.getIdProveedor(), proveedor);
+                Cliente existingCliente = clientesMap.get(cliente.getIdCliente());
+                if (existingCliente == null) {
+                    clientesMap.put(cliente.getIdCliente(), cliente);
                 } else {
-                    proveedor = existingProveedor; // Usar el proveedor existente
+                    cliente = existingCliente; // Usar el cliente existente
                 }
 
-                // Consulta para obtener las categorías asociadas al proveedor
+                // Consulta para obtener las categorías asociadas al cliente
                 String categoriaSql = """
                         SELECT c.idCategoria, c.nombreCategoria
                         FROM categoria c
-                        INNER JOIN proveedorcategoria pc ON c.idCategoria = pc.idCategoria
-                        WHERE pc.idProveedor = ?""";
+                        INNER JOIN clientecategoria ca ON c.idCategoria = ca.idCategoria
+                        WHERE ca.idCliente = ?""";
 
                 try (PreparedStatement stmtCategorias = conn.prepareStatement(categoriaSql)) {
-                    stmtCategorias.setInt(1, proveedor.getIdProveedor());
+                    stmtCategorias.setInt(1, cliente.getIdCliente());
                     ResultSet rsCategorias = stmtCategorias.executeQuery();
 
                     List<Categoria> categorias = new ArrayList<>();
@@ -346,7 +350,7 @@ public class ProveedorController {
                     }
 
                     if (!categorias.isEmpty()) {
-                        proveedor.setCategorias(categorias); // Usar lista de categorías
+                        cliente.setCategorias(categorias); // Usar lista de categorías
                     }
 
                 } catch (SQLException e) {
@@ -355,18 +359,18 @@ public class ProveedorController {
 
             }
 
-            // Convertir el mapa a una lista de proveedores sin duplicados
-            proveedores.addAll(proveedoresMap.values());
+            // Convertir el mapa a una lista de clientes sin duplicados
+            clientes.addAll(clientesMap.values());
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
 
-        return proveedores;
+        return clientes;
     }
 
-    // Método para registrar proveedor desde archivo Excel
-    public void registrarProveedorDesdeExcel(File excelFile) {
+    // Método para registrar clientes desde archivo Excel
+    public void registrarClientesDesdeExcel(File excelFile) {
         try (FileInputStream fis = new FileInputStream(excelFile);
                 Workbook workbook = new XSSFWorkbook(fis)) {
 
@@ -378,27 +382,28 @@ public class ProveedorController {
                 try {
                     // Usar el método obtenerValorCelda para obtener los valores de las celdas
                     String nombre = getStringCellValue(row.getCell(0));
-                    String cp = getStringCellValue(row.getCell(1));
-                    String noExt = getStringCellValue(row.getCell(2));
-                    String noInt = getStringCellValue(row.getCell(3));
-                    String rfc = getStringCellValue(row.getCell(4));
-                    String municipio = getStringCellValue(row.getCell(5));
-                    String estado = getStringCellValue(row.getCell(6));
-                    String calle = getStringCellValue(row.getCell(7));
-                    String colonia = getStringCellValue(row.getCell(8));
-                    String ciudad = getStringCellValue(row.getCell(9));
-                    String pais = getStringCellValue(row.getCell(10));
-                    String telefono = getStringCellValue(row.getCell(11));
-                    String correo = getStringCellValue(row.getCell(12));
-                    String curp = getStringCellValue(row.getCell(13));
-                    boolean esFisica = Boolean.parseBoolean(getStringCellValue(row.getCell(14)));
+                    String nombrefiscal = getStringCellValue(row.getCell(1));
+                    String cp = getStringCellValue(row.getCell(2));
+                    String noExt = getStringCellValue(row.getCell(3));
+                    String noInt = getStringCellValue(row.getCell(4));
+                    String rfc = getStringCellValue(row.getCell(5));
+                    String municipio = getStringCellValue(row.getCell(6));
+                    String estado = getStringCellValue(row.getCell(7));
+                    String calle = getStringCellValue(row.getCell(8));
+                    String colonia = getStringCellValue(row.getCell(9));
+                    String ciudad = getStringCellValue(row.getCell(10));
+                    String pais = getStringCellValue(row.getCell(11));
+                    String telefono = getStringCellValue(row.getCell(12));
+                    String correo = getStringCellValue(row.getCell(13));
+                    String curp = getStringCellValue(row.getCell(14));
+                    boolean esFisica = Boolean.parseBoolean(getStringCellValue(row.getCell(15)));
 
-                    Proveedor proveedor = new Proveedor(0, nombre, Integer.parseInt(cp), Integer.parseInt(noExt),
+                    Cliente cliente = new Cliente(0, nombre, nombrefiscal, Integer.parseInt(cp), Integer.parseInt(noExt),
                             Integer.parseInt(noInt), rfc, municipio, estado, calle, colonia, ciudad, pais, telefono,
                             correo, curp, esFisica);
 
                     List<Categoria> categorias = new ArrayList<>();
-                    for (int i = 15; i < row.getLastCellNum(); i++) {
+                    for (int i = 16; i < row.getLastCellNum(); i++) {
                         Cell cell = row.getCell(i, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
                         if (cell != null && cell.getCellType() == CellType.STRING) {
                             String categoriaNombre = getStringCellValue(cell).trim();
@@ -410,15 +415,15 @@ public class ProveedorController {
                         }
                     }
 
-                    // Ahora solo llamas al método registrarProveedor una sola vez
-                    registrarProveedor(proveedor, categorias);
+                    // Ahora solo llamas al método registrarCliente una sola vez
+                    registrarCliente(cliente, categorias);
 
                 } catch (Exception e) {
                     System.out.println("Error procesando fila " + row.getRowNum() + ": " + e.getMessage());
                     e.printStackTrace();
                 }
             }
-            System.out.println("Proveedores registrados desde el archivo Excel.");
+            System.out.println("Clientes registrados desde el archivo Excel.");
 
         } catch (IOException e) {
             e.printStackTrace();

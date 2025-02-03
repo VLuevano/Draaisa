@@ -2,7 +2,7 @@ package com.draaisa.controller;
 
 import com.draaisa.database.DatabaseConnection;
 import com.draaisa.model.Categoria;
-import com.draaisa.model.Proveedor;
+import com.draaisa.model.Fabricante;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,49 +20,49 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class ProveedorController {
+public class FabricanteController {
 
-    // Método para registrar proveedor desde formulario
-    public void registrarProveedor(Proveedor proveedor, List<Categoria> categorias) {
-        String sqlProveedor = "INSERT INTO proveedor (nombreprov, cpProveedor, noExtProv, noIntProv, rfcProveedor, municipio, estado, calle, colonia, ciudad, pais, telefonoProv, correoProv, curpproveedor, pfisicaproveedor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idProveedor";
+    // Método para registrar Fabricante desde formulario
+    public void registrarFabricante(Fabricante fabricante, List<Categoria> categorias) {
+        String sqlFabricante = "INSERT INTO fabricante (nombrefabricante, cpFabricante, noExtFabricante, noIntFabricante, rfcFabricante, municipio, estado, calle, colonia, ciudad, pais, telefonoFabricante, correoFabricante, curpFabricante, pfisicaFabricante) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idFabricante";
 
         try (Connection conn = DatabaseConnection.getConnection();
-                PreparedStatement stmtProveedor = conn.prepareStatement(sqlProveedor,
+                PreparedStatement stmtFabricante = conn.prepareStatement(sqlFabricante,
                         Statement.RETURN_GENERATED_KEYS)) {
 
-            stmtProveedor.setString(1, proveedor.getNombreProv());
-            stmtProveedor.setInt(2, proveedor.getCpProveedor());
-            stmtProveedor.setInt(3, proveedor.getNoExtProv());
-            stmtProveedor.setInt(4, proveedor.getNoIntProv());
-            stmtProveedor.setString(5, proveedor.getRfcProveedor());
-            stmtProveedor.setString(6, proveedor.getMunicipio());
-            stmtProveedor.setString(7, proveedor.getEstado());
-            stmtProveedor.setString(8, proveedor.getCalle());
-            stmtProveedor.setString(9, proveedor.getColonia());
-            stmtProveedor.setString(10, proveedor.getCiudad());
-            stmtProveedor.setString(11, proveedor.getPais());
-            stmtProveedor.setString(12, proveedor.getTelefonoProv());
-            stmtProveedor.setString(13, proveedor.getCorreoProv());
-            stmtProveedor.setString(14, proveedor.getCurp());
-            stmtProveedor.setBoolean(15, proveedor.isEsPersonaFisica());
-            stmtProveedor.executeUpdate();
+            stmtFabricante.setString(1, fabricante.getNombreFabricante());
+            stmtFabricante.setInt(2, fabricante.getCpFabricante());
+            stmtFabricante.setInt(3, fabricante.getNoExtFabricante());
+            stmtFabricante.setInt(4, fabricante.getNoIntFabricante());
+            stmtFabricante.setString(5, fabricante.getRfcFabricante());
+            stmtFabricante.setString(6, fabricante.getMunicipio());
+            stmtFabricante.setString(7, fabricante.getEstado());
+            stmtFabricante.setString(8, fabricante.getCalle());
+            stmtFabricante.setString(9, fabricante.getColonia());
+            stmtFabricante.setString(10, fabricante.getCiudad());
+            stmtFabricante.setString(11, fabricante.getPais());
+            stmtFabricante.setString(12, fabricante.getTelefonoFabricante());
+            stmtFabricante.setString(13, fabricante.getCorreoFabricante());
+            stmtFabricante.setString(14, fabricante.getCurp());
+            stmtFabricante.setBoolean(15, fabricante.isEsPersonaFisica());
+            stmtFabricante.executeUpdate();
 
-            ResultSet generatedKeys = stmtProveedor.getGeneratedKeys();
-            int idProveedor = -1;
+            ResultSet generatedKeys = stmtFabricante.getGeneratedKeys();
+            int idFabricante = -1;
             if (generatedKeys.next()) {
-                idProveedor = generatedKeys.getInt(1);
+                idFabricante = generatedKeys.getInt(1);
             }
 
             for (Categoria categoria : categorias) {
                 int idCategoria = obtenerOCrearCategoria(categoria);
-                asociarProveedorConCategoria(idProveedor, idCategoria);
+                asociarFabricanteConCategoria(idFabricante, idCategoria);
             }
 
-            System.out.println("Proveedor registrado exitosamente.");
+            System.out.println("Fabricante registrado exitosamente.");
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Error al registrar proveedor.");
+            System.out.println("Error al registrar fabricante.");
         }
     }
 
@@ -93,54 +93,54 @@ public class ProveedorController {
         return -1;
     }
 
-    // Método para asociar proveedor con categoría
-    private void asociarProveedorConCategoria(int idProveedor, int idCategoria) throws SQLException, IOException {
-        String sql = "INSERT INTO proveedorcategoria (idproveedor, idcategoria) VALUES (?, ?) ON CONFLICT DO NOTHING";
+    // Método para asociar fabricante con categoría
+    private void asociarFabricanteConCategoria(int idFabricante, int idCategoria) throws SQLException, IOException {
+        String sql = "INSERT INTO fabricantecategoria (idfabricante, idcategoria) VALUES (?, ?) ON CONFLICT DO NOTHING";
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idProveedor);
+            stmt.setInt(1, idFabricante);
             stmt.setInt(2, idCategoria);
             stmt.executeUpdate();
         }
     }
 
-    // Método para modificar un proveedor
-    public void modificarProveedor(Proveedor proveedor) {
-        String sql = "UPDATE proveedor SET nombreprov = ?, cpproveedor = ?, noExtProv = ?, noIntProv = ?, rfcProveedor = ?, municipio = ?, estado = ?, calle = ?, colonia = ?, ciudad = ?, pais = ?, telefonoProv = ?, correoprov = ?, curpproveedor = ?, pfisicaproveedor = ? WHERE idproveedor = ?";
+    // Método para modificar un fabricante
+    public void modificarFabricante(Fabricante fabricante) {
+        String sql = "UPDATE fabricante SET nombrefabricante = ?, cpfabricante = ?, noExtFabricante = ?, noIntFabricante = ?, rfcFabricante = ?, municipio = ?, estado = ?, calle = ?, colonia = ?, ciudad = ?, pais = ?, telefonoFabricante = ?, correofabricante = ?, curpfabricante = ?, pfisicafabricante = ? WHERE idfabricante = ?";
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, proveedor.getNombreProv());
-            stmt.setInt(2, proveedor.getCpProveedor());
-            stmt.setInt(3, proveedor.getNoExtProv());
-            stmt.setInt(4, proveedor.getNoIntProv());
-            stmt.setString(5, proveedor.getRfcProveedor());
-            stmt.setString(6, proveedor.getMunicipio());
-            stmt.setString(7, proveedor.getEstado());
-            stmt.setString(8, proveedor.getCalle());
-            stmt.setString(9, proveedor.getColonia());
-            stmt.setString(10, proveedor.getCiudad());
-            stmt.setString(11, proveedor.getPais());
-            stmt.setString(12, proveedor.getTelefonoProv());
-            stmt.setString(13, proveedor.getCorreoProv());
-            stmt.setString(14, proveedor.getCurp());
-            stmt.setBoolean(15, proveedor.isEsPersonaFisica());
-            stmt.setInt(16, proveedor.getIdProveedor());
+            stmt.setString(1, fabricante.getNombreFabricante());
+            stmt.setInt(2, fabricante.getCpFabricante());
+            stmt.setInt(3, fabricante.getNoExtFabricante());
+            stmt.setInt(4, fabricante.getNoIntFabricante());
+            stmt.setString(5, fabricante.getRfcFabricante());
+            stmt.setString(6, fabricante.getMunicipio());
+            stmt.setString(7, fabricante.getEstado());
+            stmt.setString(8, fabricante.getCalle());
+            stmt.setString(9, fabricante.getColonia());
+            stmt.setString(10, fabricante.getCiudad());
+            stmt.setString(11, fabricante.getPais());
+            stmt.setString(12, fabricante.getTelefonoFabricante());
+            stmt.setString(13, fabricante.getCorreoFabricante());
+            stmt.setString(14, fabricante.getCurp());
+            stmt.setBoolean(15, fabricante.isEsPersonaFisica());
+            stmt.setInt(16, fabricante.getIdFabricante());
             stmt.executeUpdate();
 
-            System.out.println("Proveedor actualizado correctamente.");
+            System.out.println("Fabricante actualizado correctamente.");
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Error al modificar proveedor.");
+            System.out.println("Error al modificar fabricante.");
         }
     }
 
-    public List<Proveedor> buscarProveedores(String filtro) {
-        List<Proveedor> proveedores = new ArrayList<>();
+    public List<Fabricante> buscarFabricantes(String filtro) {
+        List<Fabricante> fabricantes = new ArrayList<>();
         String[] filtros = filtro.split(","); // Separar por comas
 
-        // Crear condiciones dinámicas para la búsqueda de proveedores
-        StringBuilder sql = new StringBuilder("SELECT p.* FROM proveedor p WHERE ");
+        // Crear condiciones dinámicas para la búsqueda de fabricantes
+        StringBuilder sql = new StringBuilder("SELECT f.* FROM fabricante f WHERE ");
         List<String> condiciones = new ArrayList<>();
 
         // Condiciones de búsqueda por cada filtro
@@ -148,22 +148,22 @@ public class ProveedorController {
             palabra = palabra.trim();
 
             if (palabra.matches("\\d+")) { // Filtrar por ID
-                condiciones.add("p.idProveedor = ?");
+                condiciones.add("f.idFabricante = ?");
             } else if (palabra.matches("[a-zA-Z]+")) { // Filtrar por categoría
                 condiciones.add(
-                        "p.idProveedor IN (SELECT pc.idProveedor FROM proveedorcategoria pc INNER JOIN categoria c ON pc.idCategoria = c.idCategoria WHERE c.nombreCategoria ILIKE ?)");
+                        "f.idFabricante IN (SELECT fc.idFabricante FROM fabricantecategoria fc INNER JOIN categoria c ON fc.idCategoria = c.idCategoria WHERE c.nombreCategoria ILIKE ?)");
             } else if (palabra.matches("\\d{10}")) { // Filtrar por teléfono
-                condiciones.add("p.telefonoProv = ?");
+                condiciones.add("f.telefonoFabricante = ?");
             } else if (palabra.matches("[A-Za-z0-9]{13}")) { // Filtrar por RFC
-                condiciones.add("p.rfcProveedor = ?");
+                condiciones.add("f.rfcFabricante = ?");
             } else {
                 // Filtrar por nombre, estado, municipio
                 condiciones.add(
-                        "p.nombreprov ILIKE ? OR p.estado ILIKE ? OR p.municipio ILIKE ? OR p.rfcProveedor ILIKE ?");
+                        "f.nombrefabricante ILIKE ? OR f.estado ILIKE ? OR f.municipio ILIKE ? OR f.rfcFabricante ILIKE ?");
             }
         }
 
-        // Si no hay filtros, traer todos los proveedores
+        // Si no hay filtros, traer todos los fabricantes
         if (condiciones.isEmpty()) {
             sql.append("1=1"); // Agregar condición que siempre es verdadera
         } else {
@@ -197,36 +197,36 @@ public class ProveedorController {
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                Proveedor proveedor = new Proveedor(
-                        rs.getInt("idProveedor"),
-                        rs.getString("nombreProv"),
-                        rs.getInt("cpProveedor"),
-                        rs.getInt("noExtProv"),
-                        rs.getInt("noIntProv"),
-                        rs.getString("rfcProveedor"),
+                Fabricante fabricante = new Fabricante(
+                        rs.getInt("idFabricante"),
+                        rs.getString("nombreFabricante"),
+                        rs.getInt("cpFabricante"),
+                        rs.getInt("noExtFabricante"),
+                        rs.getInt("noIntFabricante"),
+                        rs.getString("rfcFabricante"),
                         rs.getString("municipio"),
                         rs.getString("estado"),
                         rs.getString("calle"),
                         rs.getString("colonia"),
                         rs.getString("ciudad"),
                         rs.getString("pais"),
-                        rs.getString("telefonoProv"),
-                        rs.getString("correoProv"),
-                        rs.getString("curpproveedor"),
-                        rs.getBoolean("pfisicaproveedor"));
+                        rs.getString("telefonoFabricante"),
+                        rs.getString("correoFabricante"),
+                        rs.getString("curpfabricante"),
+                        rs.getBoolean("pfisicafabricante"));
 
                 // Inicializar lista de categorías vacía
                 List<Categoria> categorias = new ArrayList<>();
 
-                // Consulta para obtener las categorías asociadas al proveedor
+                // Consulta para obtener las categorías asociadas al fabricante
                 String categoriaSql = """
                         SELECT c.idCategoria, c.nombreCategoria
                         FROM categoria c
-                        INNER JOIN proveedorcategoria pc ON c.idCategoria = pc.idCategoria
-                        WHERE pc.idProveedor = ?""";
+                        INNER JOIN fabricantecategoria fc ON c.idCategoria = fc.idCategoria
+                        WHERE fc.idFabricante = ?""";
 
                 try (PreparedStatement stmtCategorias = conn.prepareStatement(categoriaSql)) {
-                    stmtCategorias.setInt(1, proveedor.getIdProveedor());
+                    stmtCategorias.setInt(1, fabricante.getIdFabricante());
                     ResultSet rsCategorias = stmtCategorias.executeQuery();
 
                     while (rsCategorias.next()) {
@@ -239,103 +239,103 @@ public class ProveedorController {
 
                 // Asignar categorías solo si se encontraron
                 if (!categorias.isEmpty()) {
-                    proveedor.setCategorias(categorias);
+                    fabricante.setCategorias(categorias);
                 }
 
-                // Agregar proveedor a la lista
-                proveedores.add(proveedor);
+                // Agregar fabricante a la lista
+                fabricantes.add(fabricante);
             }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
 
-        return proveedores;
+        return fabricantes;
     }
 
-    // Método para eliminar proveedor
-    public void eliminarProveedor(int idProveedor) {
-        String sqlEliminarCategoria = "DELETE FROM proveedorcategoria WHERE idproveedor = ?";
-        String sqlEliminarProveedor = "DELETE FROM proveedor WHERE idProveedor = ?";
+    // Método para eliminar fabricante
+    public void eliminarFabricante(int idFabricante) {
+        String sqlEliminarCategoria = "DELETE FROM fabricantecategoria WHERE idfabricante = ?";
+        String sqlEliminarFabricante = "DELETE FROM fabricante WHERE idFabricante = ?";
 
         try (Connection conn = DatabaseConnection.getConnection()) {
             // Iniciar una transacción
             conn.setAutoCommit(false);
 
             try (PreparedStatement stmtCategoria = conn.prepareStatement(sqlEliminarCategoria);
-                    PreparedStatement stmtProveedor = conn.prepareStatement(sqlEliminarProveedor)) {
+                    PreparedStatement stmtFabricante = conn.prepareStatement(sqlEliminarFabricante)) {
 
-                // Eliminar las categorías asociadas con el proveedor
-                stmtCategoria.setInt(1, idProveedor);
+                // Eliminar las categorías asociadas con el fabricante
+                stmtCategoria.setInt(1, idFabricante);
                 stmtCategoria.executeUpdate();
 
-                // Eliminar el proveedor
-                stmtProveedor.setInt(1, idProveedor);
-                stmtProveedor.executeUpdate();
+                // Eliminar el fabricante
+                stmtFabricante.setInt(1, idFabricante);
+                stmtFabricante.executeUpdate();
 
                 // Si todo va bien, confirmar la transacción
                 conn.commit();
-                System.out.println("Proveedor y su categoría eliminados exitosamente.");
+                System.out.println("Fabricante y su categoría eliminados exitosamente.");
             } catch (SQLException e) {
                 // Si ocurre un error, deshacer la transacción
                 conn.rollback();
                 e.printStackTrace();
-                System.out.println("Error al eliminar proveedor y su categoría.");
+                System.out.println("Error al eliminar fabricante y su categoría.");
             }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Error al eliminar proveedor.");
+            System.out.println("Error al eliminar fabricante.");
         }
     }
 
-    // Método para consultar todos los proveedores
-    public List<Proveedor> consultarTodosProveedores() {
-        List<Proveedor> proveedores = new ArrayList<>();
-        String sql = "SELECT * FROM proveedor";
+    // Método para consultar todos los fabricantes
+    public List<Fabricante> consultarTodosFabricantes() {
+        List<Fabricante> fabricantes = new ArrayList<>();
+        String sql = "SELECT * FROM fabricante";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             ResultSet rs = stmt.executeQuery();
-            Map<Integer, Proveedor> proveedoresMap = new HashMap<>(); // Usar un mapa para evitar duplicados
+            Map<Integer, Fabricante> fabricantesMap = new HashMap<>(); // Usar un mapa para evitar duplicados
 
             while (rs.next()) {
-                // Crear proveedor
-                Proveedor proveedor = new Proveedor(
-                        rs.getInt("idProveedor"),
-                        rs.getString("nombreProv"),
-                        rs.getInt("cpProveedor"),
-                        rs.getInt("noExtProv"),
-                        rs.getInt("noIntProv"),
-                        rs.getString("rfcProveedor"),
+                // Crear fabricante
+                Fabricante fabricante = new Fabricante(
+                        rs.getInt("idFabricante"),
+                        rs.getString("nombreFabricante"),
+                        rs.getInt("cpFabricante"),
+                        rs.getInt("noExtFabricante"),
+                        rs.getInt("noIntFabricante"),
+                        rs.getString("rfcFabricante"),
                         rs.getString("municipio"),
                         rs.getString("estado"),
                         rs.getString("calle"),
                         rs.getString("colonia"),
                         rs.getString("ciudad"),
                         rs.getString("pais"),
-                        rs.getString("telefonoProv"),
-                        rs.getString("correoProv"),
-                        rs.getString("curpproveedor"),
-                        rs.getBoolean("pfisicaproveedor"));
+                        rs.getString("telefonoFabricante"),
+                        rs.getString("correoFabricante"),
+                        rs.getString("curpfabricante"),
+                        rs.getBoolean("pfisicafabricante"));
 
-                // Si el proveedor ya está en el mapa, usamos el existente y agregamos las
+                // Si el fabricante ya está en el mapa, usamos el existente y agregamos las
                 // categorías
-                Proveedor existingProveedor = proveedoresMap.get(proveedor.getIdProveedor());
-                if (existingProveedor == null) {
-                    proveedoresMap.put(proveedor.getIdProveedor(), proveedor);
+                Fabricante existingFabricante = fabricantesMap.get(fabricante.getIdFabricante());
+                if (existingFabricante == null) {
+                    fabricantesMap.put(fabricante.getIdFabricante(), fabricante);
                 } else {
-                    proveedor = existingProveedor; // Usar el proveedor existente
+                    fabricante = existingFabricante; // Usar el fabricante existente
                 }
 
-                // Consulta para obtener las categorías asociadas al proveedor
+                // Consulta para obtener las categorías asociadas al fabricante
                 String categoriaSql = """
                         SELECT c.idCategoria, c.nombreCategoria
                         FROM categoria c
-                        INNER JOIN proveedorcategoria pc ON c.idCategoria = pc.idCategoria
-                        WHERE pc.idProveedor = ?""";
+                        INNER JOIN fabricantecategoria fc ON c.idCategoria = fc.idCategoria
+                        WHERE fc.idFabricante = ?""";
 
                 try (PreparedStatement stmtCategorias = conn.prepareStatement(categoriaSql)) {
-                    stmtCategorias.setInt(1, proveedor.getIdProveedor());
+                    stmtCategorias.setInt(1, fabricante.getIdFabricante());
                     ResultSet rsCategorias = stmtCategorias.executeQuery();
 
                     List<Categoria> categorias = new ArrayList<>();
@@ -346,7 +346,7 @@ public class ProveedorController {
                     }
 
                     if (!categorias.isEmpty()) {
-                        proveedor.setCategorias(categorias); // Usar lista de categorías
+                        fabricante.setCategorias(categorias); // Usar lista de categorías
                     }
 
                 } catch (SQLException e) {
@@ -355,18 +355,18 @@ public class ProveedorController {
 
             }
 
-            // Convertir el mapa a una lista de proveedores sin duplicados
-            proveedores.addAll(proveedoresMap.values());
+            // Convertir el mapa a una lista de fabricantes sin duplicados
+            fabricantes.addAll(fabricantesMap.values());
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
 
-        return proveedores;
+        return fabricantes;
     }
 
-    // Método para registrar proveedor desde archivo Excel
-    public void registrarProveedorDesdeExcel(File excelFile) {
+    // Método para registrar fabricante desde archivo Excel
+    public void registrarFabricanteDesdeExcel(File excelFile) {
         try (FileInputStream fis = new FileInputStream(excelFile);
                 Workbook workbook = new XSSFWorkbook(fis)) {
 
@@ -393,7 +393,7 @@ public class ProveedorController {
                     String curp = getStringCellValue(row.getCell(13));
                     boolean esFisica = Boolean.parseBoolean(getStringCellValue(row.getCell(14)));
 
-                    Proveedor proveedor = new Proveedor(0, nombre, Integer.parseInt(cp), Integer.parseInt(noExt),
+                    Fabricante fabricante = new Fabricante(0, nombre, Integer.parseInt(cp), Integer.parseInt(noExt),
                             Integer.parseInt(noInt), rfc, municipio, estado, calle, colonia, ciudad, pais, telefono,
                             correo, curp, esFisica);
 
@@ -410,15 +410,15 @@ public class ProveedorController {
                         }
                     }
 
-                    // Ahora solo llamas al método registrarProveedor una sola vez
-                    registrarProveedor(proveedor, categorias);
+                    // Ahora solo llamas al método registrarFabricante una sola vez
+                    registrarFabricante(fabricante, categorias);
 
                 } catch (Exception e) {
                     System.out.println("Error procesando fila " + row.getRowNum() + ": " + e.getMessage());
                     e.printStackTrace();
                 }
             }
-            System.out.println("Proveedores registrados desde el archivo Excel.");
+            System.out.println("Fabricantes registrados desde el archivo Excel.");
 
         } catch (IOException e) {
             e.printStackTrace();
