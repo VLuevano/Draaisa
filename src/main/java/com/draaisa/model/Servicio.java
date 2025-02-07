@@ -13,7 +13,10 @@ public class Servicio {
         this.monedaServicio = monedaServicio;
     }
 
-    // Getters and Setters
+    public Servicio() {
+        //TODO Auto-generated constructor stub
+    }
+
     public int getIdServicio() {
         return idServicio;
     }

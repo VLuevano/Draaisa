@@ -32,6 +32,7 @@ public class Proveedor {
     private StringProperty telefonoProvProveedorProperty;
     private StringProperty correoProvProveedorProperty;
 
+    @SuppressWarnings("unused")
     private String categoriasAsString;
 
     public Proveedor(int idProveedor, String nombreProv, int cpProveedor, int noExtProv, int noIntProv,
@@ -236,4 +237,6 @@ public class Proveedor {
     public void setCategoriasAsString(String categoriasAsString) {
         this.categoriasAsString = categoriasAsString;
     }  
+
+    
 }

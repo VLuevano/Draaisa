@@ -32,6 +32,7 @@ public class Fabricante {
     private StringProperty telefonoFabricanteProperty;
     private StringProperty correoFabricanteProperty;
 
+    @SuppressWarnings("unused")
     private String categoriasAsString;
 
     public Fabricante(int idFabricante, String nombreFabricante, int cpFabricante, int noExtFabricante, int noIntFabricante,

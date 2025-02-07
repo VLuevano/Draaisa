@@ -37,6 +37,11 @@ public class MenuPrincipalScreen {
         menuArchivo.getItems().add(cerrarSesion);
 
         Menu menuProductos = new Menu("Productos");
+        MenuItem abrirProductos = new MenuItem("Gestión de Productos");
+        abrirProductos.setOnAction(e -> {
+            new ProductoView(usuarioActual).start(primaryStage);
+        });
+        menuProductos.getItems().add(abrirProductos);
 
         Menu menuProveedores = new Menu("Proveedores");
         MenuItem abrirProveedores = new MenuItem("Gestión de Proveedores");
@@ -67,6 +72,11 @@ public class MenuPrincipalScreen {
         menuMercado.getItems().add(abrirEmpresas);
 
         Menu menuPrestadores = new Menu("Prestadores de Servicios");
+        MenuItem abrirPrestadores = new MenuItem("Gestión de Prestadores");
+        abrirPrestadores.setOnAction(e -> {
+            new PrestadorServicioView(usuarioActual).start(primaryStage);
+        });
+        menuPrestadores.getItems().add(abrirPrestadores);
 
         Menu menuUsuarios = new Menu("Usuarios");
         if (UsuarioController.tienePermiso(usuarioActual)) {

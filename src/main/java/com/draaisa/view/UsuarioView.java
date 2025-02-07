@@ -12,8 +12,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.util.List;
-
 public class UsuarioView extends Application {
 
     private final String usuarioActual;
@@ -96,6 +94,7 @@ public class UsuarioView extends Application {
         return grid;
     }
 
+    @SuppressWarnings("unchecked")
     private GridPane crearTablaUsuarios() {
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(15));

@@ -32,6 +32,7 @@ public class Empresa {
     private StringProperty telefonoEmpresaProperty;
     private StringProperty correoEmpresaProperty;
 
+    @SuppressWarnings("unused")
     private String categoriasAsString;
 
     public Empresa(int idEmpresa, String nombreEmpresa, int cpEmpresa, int noExtEmpresa, int noIntEmpresa,

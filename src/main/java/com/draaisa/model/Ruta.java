@@ -11,6 +11,10 @@ public class Ruta {
         this.destino = destino;
     }
 
+    public Ruta() {
+        //TODO Auto-generated constructor stub
+    }
+
     // Getters and Setters
     public int getIdRuta() {
         return idRuta;

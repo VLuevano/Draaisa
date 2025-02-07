@@ -33,6 +33,7 @@ public class Cliente {
     private StringProperty telefonoClienteProperty;
     private StringProperty correoClienteProperty;
 
+    @SuppressWarnings("unused")
     private String categoriasAsString;
 
     public Cliente(int idCliente, String nombreCliente, String nombreFiscal, int cpCliente, int noExtCliente,
