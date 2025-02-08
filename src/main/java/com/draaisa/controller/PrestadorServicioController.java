@@ -219,40 +219,95 @@ public class PrestadorServicioController {
         return prestadores;
     }
 
-    // Método para consultar todos los prestadores de servicio
-    public List<PrestadorServicio> consultarPrestadores() {
-        List<PrestadorServicio> prestadores = new ArrayList<>();
-        String query = "SELECT * FROM " + TABLE_PRESTADOR_SERVICIO;
+    // Consultar todos los prestadores de servicio, incluyendo sus servicios y rutas
+    // Consultar todos los prestadores de servicio
+public List<PrestadorServicio> consultarPrestadores() {
+    List<PrestadorServicio> prestadores = new ArrayList<>();
+    String query = "SELECT * FROM " + TABLE_PRESTADOR_SERVICIO;
+
+    try (PreparedStatement stmt = connection.prepareStatement(query)) {
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next()) {
+            PrestadorServicio prestador = new PrestadorServicio();
+            prestador.setIdPrestador(rs.getInt("idPrestador"));
+            prestador.setNombrePrestador(rs.getString("nombrePrestador"));
+            prestador.setCpPrestador(rs.getInt("cpPrestador"));
+            prestador.setNoExtPrestador(rs.getInt("noExtPrestador"));
+            prestador.setNoIntPrestador(rs.getInt("noIntPrestador"));
+            prestador.setRfcPrestador(rs.getString("rfcPrestador"));
+            prestador.setMunicipio(rs.getString("municipio"));
+            prestador.setEstado(rs.getString("estado"));
+            prestador.setCalle(rs.getString("calle"));
+            prestador.setColonia(rs.getString("colonia"));
+            prestador.setCiudad(rs.getString("ciudad"));
+            prestador.setPais(rs.getString("pais"));
+            prestador.setTelefonoPrestador(rs.getString("telefonoPrest"));
+            prestador.setCorreoPrestador(rs.getString("correoPrest"));
+            prestador.setCurp(rs.getString("curpPrestador"));
+            prestador.setEsPersonaFisica(rs.getBoolean("pFisicaPrestador"));
+
+            // Consultar servicios y rutas para el prestador
+            prestador.setServicios(obtenerServiciosPrestador(prestador.getIdPrestador()));
+            prestador.setRutas(obtenerRutasPrestador(prestador.getIdPrestador()));
+
+            prestadores.add(prestador);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    System.out.println("Prestadores consultados: " + prestadores.size());
+    return prestadores;
+}
+
+
+    // Consultar servicios asociados a un prestador
+    private List<Servicio> obtenerServiciosPrestador(int idPrestador) {
+        List<Servicio> servicios = new ArrayList<>();
+        String query = "SELECT * FROM " + TABLE_SERVICIO + " WHERE idPrestador = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, idPrestador);
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                PrestadorServicio prestador = new PrestadorServicio();
-                prestador.setIdPrestador(rs.getInt("idPrestador"));
-                prestador.setNombrePrestador(rs.getString("nombrePrestador"));
-                prestador.setCpPrestador(rs.getInt("cpPrestador"));
-                prestador.setNoExtPrestador(rs.getInt("noExtPrestador"));
-                prestador.setNoIntPrestador(rs.getInt("noIntPrestador"));
-                prestador.setRfcPrestador(rs.getString("rfcPrestador"));
-                prestador.setMunicipio(rs.getString("municipio"));
-                prestador.setEstado(rs.getString("estado"));
-                prestador.setCalle(rs.getString("calle"));
-                prestador.setColonia(rs.getString("colonia"));
-                prestador.setCiudad(rs.getString("ciudad"));
-                prestador.setPais(rs.getString("pais"));
-                prestador.setTelefonoPrestador(rs.getString("telefonoPrest"));
-                prestador.setCorreoPrestador(rs.getString("correoPrest"));
-                prestador.setCurp(rs.getString("curpPrestador"));
-                prestador.setEsPersonaFisica(rs.getBoolean("pFisicaPrestador"));
-                prestadores.add(prestador);
+                Servicio servicio = new Servicio();
+                servicio.setIdServicio(rs.getInt("idServicio"));
+                servicio.setDescripcionServicio(rs.getString("descripcionServicio"));
+                servicio.setCostoServicio(rs.getDouble("costoServicio"));
+                servicios.add(servicio);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        System.out.println("Prestadores consultados: " + prestadores.size());
-        return prestadores;
+        return servicios;
+    }
+
+    // Consultar rutas asociadas a un prestador
+    private List<Ruta> obtenerRutasPrestador(int idPrestador) {
+        List<Ruta> rutas = new ArrayList<>();
+        String query = "SELECT r.* FROM " + TABLE_RUTA + " r " +
+                "JOIN " + TABLE_PRESTADOR_RUTA + " pr ON r.idRuta = pr.idRuta " +
+                "WHERE pr.idPrestador = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, idPrestador);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Ruta ruta = new Ruta();
+                ruta.setIdRuta(rs.getInt("idRuta"));
+                ruta.setSalida(rs.getString("salidaRuta"));
+                ruta.setDestino(rs.getString("destinoRuta"));
+                rutas.add(ruta);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return rutas;
     }
 
     // Modificar Prestador de Servicio

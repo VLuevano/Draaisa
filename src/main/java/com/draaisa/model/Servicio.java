@@ -17,6 +17,10 @@ public class Servicio {
         //TODO Auto-generated constructor stub
     }
 
+    public Servicio(String descripcionServicio) {
+        this.descripcionServicio = descripcionServicio;
+    }
+
     public int getIdServicio() {
         return idServicio;
     }

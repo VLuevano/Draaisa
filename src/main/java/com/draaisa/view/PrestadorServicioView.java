@@ -6,6 +6,7 @@ import com.draaisa.model.Ruta;
 import com.draaisa.model.Servicio;
 
 import javafx.application.Application;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -20,6 +21,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class PrestadorServicioView extends Application {
 
@@ -258,110 +260,129 @@ public class PrestadorServicioView extends Application {
     }
 
     @SuppressWarnings("unchecked")
-    private VBox crearPanelTabla() {
-        // Panel de tabla
-        panelTabla = new VBox(10);
-        panelTabla.setStyle("-fx-padding: 10;");
+private VBox crearPanelTabla() {
+    // Panel de tabla
+    panelTabla = new VBox(10);
+    panelTabla.setStyle("-fx-padding: 10;");
 
-        // Campo de texto para ingresar filtros
-        TextField filtroField = new TextField();
-        filtroField.setPromptText("Ingresa filtros (ID, nombre, teléfono, RFC, etc.) separados por comas");
+    // Campo de texto para ingresar filtros
+    TextField filtroField = new TextField();
+    filtroField.setPromptText("Ingresa filtros (ID, nombre, teléfono, RFC, etc.) separados por comas");
 
-        filtroField.textProperty().addListener((observable, oldValue, newValue) -> {
-            String filtro = filtroField.getText();
-            List<PrestadorServicio> prestadoresFiltrados = controller.buscarPrestadoresServicio(filtro);
-            actualizarTablaFiltro(prestadoresFiltrados); // Actualiza la tabla con los resultados
-        });
+    filtroField.textProperty().addListener((observable, oldValue, newValue) -> {
+        String filtro = filtroField.getText();
+        List<PrestadorServicio> prestadoresFiltrados = controller.buscarPrestadoresServicio(filtro);
+        actualizarTablaFiltro(prestadoresFiltrados); // Actualiza la tabla con los resultados
+    });
 
-        // Tabla de prestadores de servicios
-        tablePrestadores = new TableView<>();
+    // Tabla de prestadores de servicios
+    tablePrestadores = new TableView<>();
 
-        TableColumn<PrestadorServicio, Integer> idColumn = new TableColumn<>("ID");
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("idPrestador"));
+    TableColumn<PrestadorServicio, Integer> idColumn = new TableColumn<>("ID");
+    idColumn.setCellValueFactory(new PropertyValueFactory<>("idPrestador"));
 
-        TableColumn<PrestadorServicio, String> nombreColumn = new TableColumn<>("Nombre");
-        nombreColumn.setCellValueFactory(new PropertyValueFactory<>("nombrePrestador"));
+    TableColumn<PrestadorServicio, String> nombreColumn = new TableColumn<>("Nombre");
+    nombreColumn.setCellValueFactory(new PropertyValueFactory<>("nombrePrestador"));
 
-        TableColumn<PrestadorServicio, String> rfcColumn = new TableColumn<>("RFC");
-        rfcColumn.setCellValueFactory(new PropertyValueFactory<>("rfcPrestador"));
+    TableColumn<PrestadorServicio, String> rfcColumn = new TableColumn<>("RFC");
+    rfcColumn.setCellValueFactory(new PropertyValueFactory<>("rfcPrestador"));
 
-        TableColumn<PrestadorServicio, String> telefonoColumn = new TableColumn<>("Teléfono");
-        telefonoColumn.setCellValueFactory(new PropertyValueFactory<>("telefonoPrestador"));
+    TableColumn<PrestadorServicio, String> telefonoColumn = new TableColumn<>("Teléfono");
+    telefonoColumn.setCellValueFactory(new PropertyValueFactory<>("telefonoPrestador"));
 
-        TableColumn<PrestadorServicio, Integer> cpColumn = new TableColumn<>("Código Postal");
-        cpColumn.setCellValueFactory(new PropertyValueFactory<>("cpPrestador"));
+    TableColumn<PrestadorServicio, Integer> cpColumn = new TableColumn<>("Código Postal");
+    cpColumn.setCellValueFactory(new PropertyValueFactory<>("cpPrestador"));
 
-        TableColumn<PrestadorServicio, Integer> noExtColumn = new TableColumn<>("Número Exterior");
-        noExtColumn.setCellValueFactory(new PropertyValueFactory<>("noExtPrestador"));
+    TableColumn<PrestadorServicio, Integer> noExtColumn = new TableColumn<>("Número Exterior");
+    noExtColumn.setCellValueFactory(new PropertyValueFactory<>("noExtPrestador"));
 
-        TableColumn<PrestadorServicio, Integer> noIntColumn = new TableColumn<>("Número Interior");
-        noIntColumn.setCellValueFactory(new PropertyValueFactory<>("noIntPrestador"));
+    TableColumn<PrestadorServicio, Integer> noIntColumn = new TableColumn<>("Número Interior");
+    noIntColumn.setCellValueFactory(new PropertyValueFactory<>("noIntPrestador"));
 
-        TableColumn<PrestadorServicio, String> calleColumn = new TableColumn<>("Calle");
-        calleColumn.setCellValueFactory(new PropertyValueFactory<>("calle"));
+    TableColumn<PrestadorServicio, String> calleColumn = new TableColumn<>("Calle");
+    calleColumn.setCellValueFactory(new PropertyValueFactory<>("calle"));
 
-        TableColumn<PrestadorServicio, String> coloniaColumn = new TableColumn<>("Colonia");
-        coloniaColumn.setCellValueFactory(new PropertyValueFactory<>("colonia"));
+    TableColumn<PrestadorServicio, String> coloniaColumn = new TableColumn<>("Colonia");
+    coloniaColumn.setCellValueFactory(new PropertyValueFactory<>("colonia"));
 
-        TableColumn<PrestadorServicio, String> ciudadColumn = new TableColumn<>("Ciudad");
-        ciudadColumn.setCellValueFactory(new PropertyValueFactory<>("ciudad"));
+    TableColumn<PrestadorServicio, String> ciudadColumn = new TableColumn<>("Ciudad");
+    ciudadColumn.setCellValueFactory(new PropertyValueFactory<>("ciudad"));
 
-        TableColumn<PrestadorServicio, String> municipioColumn = new TableColumn<>("Municipio");
-        municipioColumn.setCellValueFactory(new PropertyValueFactory<>("municipio"));
+    TableColumn<PrestadorServicio, String> municipioColumn = new TableColumn<>("Municipio");
+    municipioColumn.setCellValueFactory(new PropertyValueFactory<>("municipio"));
 
-        TableColumn<PrestadorServicio, String> estadoColumn = new TableColumn<>("Estado");
-        estadoColumn.setCellValueFactory(new PropertyValueFactory<>("estado"));
+    TableColumn<PrestadorServicio, String> estadoColumn = new TableColumn<>("Estado");
+    estadoColumn.setCellValueFactory(new PropertyValueFactory<>("estado"));
 
-        TableColumn<PrestadorServicio, String> paisColumn = new TableColumn<>("País");
-        paisColumn.setCellValueFactory(new PropertyValueFactory<>("pais"));
+    TableColumn<PrestadorServicio, String> paisColumn = new TableColumn<>("País");
+    paisColumn.setCellValueFactory(new PropertyValueFactory<>("pais"));
 
-        TableColumn<PrestadorServicio, String> correoColumn = new TableColumn<>("Correo");
-        correoColumn.setCellValueFactory(new PropertyValueFactory<>("correoPrestador"));
+    TableColumn<PrestadorServicio, String> correoColumn = new TableColumn<>("Correo");
+    correoColumn.setCellValueFactory(new PropertyValueFactory<>("correoPrestador"));
 
-        TableColumn<PrestadorServicio, String> curpColumn = new TableColumn<>("CURP");
-        curpColumn.setCellValueFactory(new PropertyValueFactory<>("curp"));
+    TableColumn<PrestadorServicio, String> curpColumn = new TableColumn<>("CURP");
+    curpColumn.setCellValueFactory(new PropertyValueFactory<>("curp"));
 
-        TableColumn<PrestadorServicio, String> personaFisicaColumn = new TableColumn<>("Es Persona Física");
-        personaFisicaColumn.setCellValueFactory(new PropertyValueFactory<>("esPersonaFisica"));
+    TableColumn<PrestadorServicio, String> personaFisicaColumn = new TableColumn<>("Es Persona Física");
+    personaFisicaColumn.setCellValueFactory(new PropertyValueFactory<>("esPersonaFisica"));
 
-        // Agregar las columnas al TableView
-        tablePrestadores.getColumns().addAll(idColumn, nombreColumn, rfcColumn, telefonoColumn, cpColumn, noExtColumn,
-                noIntColumn, calleColumn, coloniaColumn, ciudadColumn, municipioColumn, estadoColumn, paisColumn,
-                correoColumn, curpColumn, personaFisicaColumn);
+    // Nueva columna para los servicios
+    TableColumn<PrestadorServicio, String> serviciosColumn = new TableColumn<>("Servicios");
+    serviciosColumn.setCellValueFactory(cellData -> {
+        List<Servicio> servicios = cellData.getValue().getServicios();
+        return new SimpleStringProperty(servicios.stream()
+                .map(Servicio::getDescripcionServicio)
+                .collect(Collectors.joining(", ")));
+    });
 
-        // Inicializar la tabla con los prestadores
-        List<PrestadorServicio> prestadoresIniciales = controller.consultarPrestadores();
-        tablePrestadores.getItems().setAll(prestadoresIniciales);
+    // Nueva columna para las rutas
+    TableColumn<PrestadorServicio, String> rutasColumn = new TableColumn<>("Rutas");
+    rutasColumn.setCellValueFactory(cellData -> {
+        List<Ruta> rutas = cellData.getValue().getRutas();
+        return new SimpleStringProperty(rutas.stream()
+                .map(ruta -> ruta.getSalida() + " - " + ruta.getDestino())
+                .collect(Collectors.joining(", ")));
+    });
 
-        // Configuración para seleccionar un prestador de la tabla
-        tablePrestadores.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            prestadorSeleccionado = newSelection; // Se guarda el prestador seleccionado
-            btnModificar.setDisable(newSelection == null); // Habilitar/deshabilitar botones
-            btnEliminar.setDisable(newSelection == null);
-        });
+    // Agregar las columnas al TableView
+    tablePrestadores.getColumns().addAll(idColumn, nombreColumn, rfcColumn, telefonoColumn, cpColumn, noExtColumn,
+            noIntColumn, calleColumn, coloniaColumn, ciudadColumn, municipioColumn, estadoColumn, paisColumn,
+            correoColumn, curpColumn, personaFisicaColumn, serviciosColumn, rutasColumn);
 
-        // Botones de acción
-        HBox buttons = new HBox(10);
-        btnModificar = new Button("Modificar");
-        btnModificar.setOnAction(e -> modificarPrestador());
-        btnEliminar = new Button("Eliminar");
-        btnEliminar.setOnAction(e -> eliminarPrestador());
+    // Inicializar la tabla con los prestadores
+    List<PrestadorServicio> prestadoresIniciales = controller.consultarPrestadores();
+    tablePrestadores.getItems().setAll(prestadoresIniciales);
 
-        // Deshabilitar botones si no hay selección
-        btnModificar.setDisable(true);
-        btnEliminar.setDisable(true);
+    // Configuración para seleccionar un prestador de la tabla
+    tablePrestadores.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+        prestadorSeleccionado = newSelection; // Se guarda el prestador seleccionado
+        btnModificar.setDisable(newSelection == null); // Habilitar/deshabilitar botones
+        btnEliminar.setDisable(newSelection == null);
+    });
 
-        buttons.getChildren().addAll(btnModificar, btnEliminar);
+    // Botones de acción
+    HBox buttons = new HBox(10);
+    btnModificar = new Button("Modificar");
+    btnModificar.setOnAction(e -> modificarPrestador());
+    btnEliminar = new Button("Eliminar");
+    btnEliminar.setOnAction(e -> eliminarPrestador());
 
-        // Agregar la tabla en un ScrollPane
-        ScrollPane scrollTable = new ScrollPane(tablePrestadores);
-        scrollTable.setFitToWidth(true);
-        scrollTable.setFitToHeight(true);
+    // Deshabilitar botones si no hay selección
+    btnModificar.setDisable(true);
+    btnEliminar.setDisable(true);
 
-        panelTabla.getChildren().addAll(filtroField, scrollTable, buttons);
+    buttons.getChildren().addAll(btnModificar, btnEliminar);
 
-        return new VBox(panelTabla);
-    }
+    // Agregar la tabla en un ScrollPane
+    ScrollPane scrollTable = new ScrollPane(tablePrestadores);
+    scrollTable.setFitToWidth(true);
+    scrollTable.setFitToHeight(true);
+
+    panelTabla.getChildren().addAll(filtroField, scrollTable, buttons);
+
+    return new VBox(panelTabla);
+}
+
 
     // Método para actualizar la tabla con los resultados filtrados
     private void actualizarTablaFiltro(List<PrestadorServicio> prestadoresFiltrados) {
