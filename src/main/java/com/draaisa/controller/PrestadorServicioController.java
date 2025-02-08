@@ -219,48 +219,46 @@ public class PrestadorServicioController {
         return prestadores;
     }
 
-    // Consultar todos los prestadores de servicio, incluyendo sus servicios y rutas
     // Consultar todos los prestadores de servicio
-public List<PrestadorServicio> consultarPrestadores() {
-    List<PrestadorServicio> prestadores = new ArrayList<>();
-    String query = "SELECT * FROM " + TABLE_PRESTADOR_SERVICIO;
+    public List<PrestadorServicio> consultarPrestadores() {
+        List<PrestadorServicio> prestadores = new ArrayList<>();
+        String query = "SELECT * FROM " + TABLE_PRESTADOR_SERVICIO;
 
-    try (PreparedStatement stmt = connection.prepareStatement(query)) {
-        ResultSet rs = stmt.executeQuery();
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            ResultSet rs = stmt.executeQuery();
 
-        while (rs.next()) {
-            PrestadorServicio prestador = new PrestadorServicio();
-            prestador.setIdPrestador(rs.getInt("idPrestador"));
-            prestador.setNombrePrestador(rs.getString("nombrePrestador"));
-            prestador.setCpPrestador(rs.getInt("cpPrestador"));
-            prestador.setNoExtPrestador(rs.getInt("noExtPrestador"));
-            prestador.setNoIntPrestador(rs.getInt("noIntPrestador"));
-            prestador.setRfcPrestador(rs.getString("rfcPrestador"));
-            prestador.setMunicipio(rs.getString("municipio"));
-            prestador.setEstado(rs.getString("estado"));
-            prestador.setCalle(rs.getString("calle"));
-            prestador.setColonia(rs.getString("colonia"));
-            prestador.setCiudad(rs.getString("ciudad"));
-            prestador.setPais(rs.getString("pais"));
-            prestador.setTelefonoPrestador(rs.getString("telefonoPrest"));
-            prestador.setCorreoPrestador(rs.getString("correoPrest"));
-            prestador.setCurp(rs.getString("curpPrestador"));
-            prestador.setEsPersonaFisica(rs.getBoolean("pFisicaPrestador"));
+            while (rs.next()) {
+                PrestadorServicio prestador = new PrestadorServicio();
+                prestador.setIdPrestador(rs.getInt("idPrestador"));
+                prestador.setNombrePrestador(rs.getString("nombrePrestador"));
+                prestador.setCpPrestador(rs.getInt("cpPrestador"));
+                prestador.setNoExtPrestador(rs.getInt("noExtPrestador"));
+                prestador.setNoIntPrestador(rs.getInt("noIntPrestador"));
+                prestador.setRfcPrestador(rs.getString("rfcPrestador"));
+                prestador.setMunicipio(rs.getString("municipio"));
+                prestador.setEstado(rs.getString("estado"));
+                prestador.setCalle(rs.getString("calle"));
+                prestador.setColonia(rs.getString("colonia"));
+                prestador.setCiudad(rs.getString("ciudad"));
+                prestador.setPais(rs.getString("pais"));
+                prestador.setTelefonoPrestador(rs.getString("telefonoPrest"));
+                prestador.setCorreoPrestador(rs.getString("correoPrest"));
+                prestador.setCurp(rs.getString("curpPrestador"));
+                prestador.setEsPersonaFisica(rs.getBoolean("pFisicaPrestador"));
 
-            // Consultar servicios y rutas para el prestador
-            prestador.setServicios(obtenerServiciosPrestador(prestador.getIdPrestador()));
-            prestador.setRutas(obtenerRutasPrestador(prestador.getIdPrestador()));
+                // Consultar servicios y rutas para el prestador
+                prestador.setServicios(obtenerServiciosPrestador(prestador.getIdPrestador()));
+                prestador.setRutas(obtenerRutasPrestador(prestador.getIdPrestador()));
 
-            prestadores.add(prestador);
+                prestadores.add(prestador);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+
+        System.out.println("Prestadores consultados: " + prestadores.size());
+        return prestadores;
     }
-
-    System.out.println("Prestadores consultados: " + prestadores.size());
-    return prestadores;
-}
-
 
     // Consultar servicios asociados a un prestador
     private List<Servicio> obtenerServiciosPrestador(int idPrestador) {
