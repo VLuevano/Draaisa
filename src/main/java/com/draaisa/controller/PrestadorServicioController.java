@@ -12,7 +12,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PrestadorServicioController {
     private static final String TABLE_PRESTADOR_SERVICIO = "PrestadorServicio";
@@ -153,14 +155,16 @@ public class PrestadorServicioController {
     }
 
     public List<PrestadorServicio> buscarPrestadoresServicio(String filtro) {
-        List<PrestadorServicio> prestadores = new ArrayList<>();
+        Map<Integer, PrestadorServicio> prestadoresMap = new HashMap<>();
         String[] filtros = filtro.split(","); // Separar por comas y eliminar espacios
 
-        // Crear la base de la consulta
-        StringBuilder sql = new StringBuilder("SELECT DISTINCT p.* FROM prestadorservicio p ");
-        sql.append("LEFT JOIN prestadorruta pr ON p.idPrestador = pr.idPrestador ");
-        sql.append("LEFT JOIN ruta r ON pr.idRuta = r.idRuta ");
-        sql.append("LEFT JOIN servicio s ON s.idPrestador = p.idPrestador WHERE ");
+        // Base de la consulta
+        StringBuilder sql = new StringBuilder(
+                "SELECT p.*, s.idServicio, s.descripcionServicio, r.idRuta, r.salidaRuta, r.destinoRuta " +
+                        "FROM prestadorservicio p " +
+                        "LEFT JOIN servicio s ON s.idPrestador = p.idPrestador " +
+                        "LEFT JOIN prestadorruta pr ON p.idPrestador = pr.idPrestador " +
+                        "LEFT JOIN ruta r ON pr.idRuta = r.idRuta WHERE ");
 
         List<String> condiciones = new ArrayList<>();
 
@@ -175,8 +179,7 @@ public class PrestadorServicioController {
                     ")");
         }
 
-        // Unir todas las condiciones con AND para que todas las palabras sean
-        // consideradas sin importar el orden
+        // Unir todas las condiciones con AND
         sql.append(String.join(" AND ", condiciones));
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -192,31 +195,52 @@ public class PrestadorServicioController {
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                PrestadorServicio prestador = new PrestadorServicio(
-                        rs.getInt("idPrestador"),
-                        rs.getString("nombrePrestador"),
-                        rs.getInt("cpPrestador"),
-                        rs.getInt("noExtPrestador"),
-                        rs.getInt("noIntPrestador"),
-                        rs.getString("rfcPrestador"),
-                        rs.getString("municipio"),
-                        rs.getString("estado"),
-                        rs.getString("calle"),
-                        rs.getString("colonia"),
-                        rs.getString("ciudad"),
-                        rs.getString("pais"),
-                        rs.getString("telefonoPrest"),
-                        rs.getString("correoPrest"),
-                        rs.getString("curpPrestador"),
-                        rs.getBoolean("pfisicaPrestador"));
+                int idPrestador = rs.getInt("idPrestador");
 
-                prestadores.add(prestador);
+                // Si el prestador ya fue agregado, obtenerlo del mapa
+                PrestadorServicio prestador = prestadoresMap.get(idPrestador);
+                if (prestador == null) {
+                    prestador = new PrestadorServicio(
+                            idPrestador,
+                            rs.getString("nombrePrestador"),
+                            rs.getInt("cpPrestador"),
+                            rs.getInt("noExtPrestador"),
+                            rs.getInt("noIntPrestador"),
+                            rs.getString("rfcPrestador"),
+                            rs.getString("municipio"),
+                            rs.getString("estado"),
+                            rs.getString("calle"),
+                            rs.getString("colonia"),
+                            rs.getString("ciudad"),
+                            rs.getString("pais"),
+                            rs.getString("telefonoPrest"),
+                            rs.getString("correoPrest"),
+                            rs.getString("curpPrestador"),
+                            rs.getBoolean("pfisicaPrestador"));
+                    prestadoresMap.put(idPrestador, prestador);
+                }
+
+                // Agregar servicios al prestador
+                int idServicio = rs.getInt("idServicio");
+                if (idServicio > 0) {
+                    String descripcionServicio = rs.getString("descripcionServicio");
+                    prestador.agregarServicio(new Servicio(idServicio, descripcionServicio));
+                }
+
+                // Agregar rutas al prestador
+                int idRuta = rs.getInt("idRuta");
+                if (idRuta > 0) {
+                    String salida = rs.getString("salidaRuta");
+                    String destino = rs.getString("destinoRuta");
+                    prestador.agregarRuta(new Ruta(idRuta, salida, destino));
+                }
             }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
 
-        return prestadores;
+        // Convertir el mapa en una lista de prestadores únicos
+        return new ArrayList<>(prestadoresMap.values());
     }
 
     // Consultar todos los prestadores de servicio

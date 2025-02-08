@@ -218,4 +218,12 @@ public class PrestadorServicio {
         return estadoProveedorProperty;
     }
 
+    public void agregarServicio(Servicio servicio) {
+        this.servicios.add(servicio);
+    }
+
+    public void agregarRuta(Ruta ruta) {
+        this.rutas.add(ruta);
+    }
+
 }

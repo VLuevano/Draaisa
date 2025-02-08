@@ -4,7 +4,7 @@ public class Ruta {
     private int idRuta;
     private String salida;
     private String destino;
-    
+
     public Ruta(int idRuta, String salida, String destino) {
         this.idRuta = idRuta;
         this.salida = salida;
@@ -12,7 +12,7 @@ public class Ruta {
     }
 
     public Ruta() {
-        //TODO Auto-generated constructor stub
+        // TODO Auto-generated constructor stub
     }
 
     // Getters and Setters

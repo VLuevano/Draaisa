@@ -24,7 +24,7 @@ public class EmpresaController {
 
     // Método para registrar Empresa desde formulario
     public void registrarEmpresa(Empresa empresa, List<Categoria> categorias) {
-        String sqlEmpresa = "INSERT INTO empresa (nombreempresa, cpEmpresa, noExtEmpresa, noIntEmpresa, rfcEmpresa, municipio, estado, calle, colonia, ciudad, pais, telefonoEmpresa, correoEmpresa, curpEmpresa, pfisicaEmpresa) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idEmpresa";
+        String sqlEmpresa = "INSERT INTO empresa (nombreemp, cpEmpresa, noExtEmpresa, noIntEmpresa, rfcEmpresa, municipio, estado, calle, colonia, ciudad, pais, telefonoEmpresa, correoEmpresa, curpEmpresa, pfisicaEmpresa) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idEmpresa";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmtEmpresa = conn.prepareStatement(sqlEmpresa,
@@ -106,7 +106,7 @@ public class EmpresaController {
 
     // Método para modificar un empresa
     public void modificarEmpresa(Empresa empresa) {
-        String sql = "UPDATE empresa SET nombreempresa = ?, cpempresa = ?, noExtEmpresa = ?, noIntEmpresa = ?, rfcEmpresa = ?, municipio = ?, estado = ?, calle = ?, colonia = ?, ciudad = ?, pais = ?, telefonoEmpresa = ?, correoempresa = ?, curpempresa = ?, pfisicaempresa = ? WHERE idempresa = ?";
+        String sql = "UPDATE empresa SET nombreemp = ?, cpempresa = ?, noExtEmpresa = ?, noIntEmpresa = ?, rfcEmpresa = ?, municipio = ?, estado = ?, calle = ?, colonia = ?, ciudad = ?, pais = ?, telefonoEmpresa = ?, correoempresa = ?, curpempresa = ?, pfisicaempresa = ? WHERE idempresa = ?";
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -159,7 +159,7 @@ public class EmpresaController {
             } else {
                 // Filtrar por nombre, estado, municipio
                 condiciones.add(
-                        "e.nombreempresa ILIKE ? OR e.estado ILIKE ? OR e.municipio ILIKE ? OR e.rfcEmpresa ILIKE ?");
+                        "e.nombreemp ILIKE ? OR e.estado ILIKE ? OR e.municipio ILIKE ? OR e.rfcEmpresa ILIKE ?");
             }
         }
 
@@ -199,7 +199,7 @@ public class EmpresaController {
             while (rs.next()) {
                 Empresa empresa = new Empresa(
                         rs.getInt("idEmpresa"),
-                        rs.getString("nombreEmpresa"),
+                        rs.getString("nombreemp"),
                         rs.getInt("cpEmpresa"),
                         rs.getInt("noExtEmpresa"),
                         rs.getInt("noIntEmpresa"),
@@ -302,7 +302,7 @@ public class EmpresaController {
                 // Crear empresa
                 Empresa empresa = new Empresa(
                         rs.getInt("idEmpresa"),
-                        rs.getString("nombreEmpresa"),
+                        rs.getString("nombreemp"),
                         rs.getInt("cpEmpresa"),
                         rs.getInt("noExtEmpresa"),
                         rs.getInt("noIntEmpresa"),

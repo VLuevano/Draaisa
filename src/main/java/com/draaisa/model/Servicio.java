@@ -14,11 +14,16 @@ public class Servicio {
     }
 
     public Servicio() {
-        //TODO Auto-generated constructor stub
+        // TODO Auto-generated constructor stub
     }
 
     public Servicio(String descripcionServicio) {
         this.descripcionServicio = descripcionServicio;
+    }
+
+    public Servicio(int idServicio2, String descripcionServicio2) {
+        this.idServicio = idServicio2;
+        this.descripcionServicio = descripcionServicio2;
     }
 
     public int getIdServicio() {

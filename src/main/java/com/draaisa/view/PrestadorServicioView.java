@@ -46,6 +46,8 @@ public class PrestadorServicioView extends Application {
     // Para guardar el prestador seleccionado
     private PrestadorServicio prestadorSeleccionado;
 
+    private List<PrestadorServicio> prestadoresOriginales;
+
     public PrestadorServicioView(String usuarioActual) {
         this.usuarioActual = usuarioActual;
     }
@@ -278,6 +280,18 @@ public class PrestadorServicioView extends Application {
         // Tabla de prestadores de servicios
         tablePrestadores = new TableView<>();
 
+        // Consultar la lista original de prestadores solo una vez
+        prestadoresOriginales = controller.consultarPrestadores();
+        tablePrestadores.getItems().setAll(prestadoresOriginales);
+
+        filtroField.textProperty().addListener((observable, oldValue, newValue) -> {
+            List<PrestadorServicio> filtrados = newValue.isEmpty()
+                    ? prestadoresOriginales
+                    : controller.buscarPrestadoresServicio(newValue);
+
+            tablePrestadores.getItems().setAll(filtrados);
+        });
+
         TableColumn<PrestadorServicio, Integer> idColumn = new TableColumn<>("ID");
         idColumn.setCellValueFactory(new PropertyValueFactory<>("idPrestador"));
 
@@ -330,18 +344,18 @@ public class PrestadorServicioView extends Application {
         TableColumn<PrestadorServicio, String> serviciosColumn = new TableColumn<>("Servicios");
         serviciosColumn.setCellValueFactory(cellData -> {
             List<Servicio> servicios = cellData.getValue().getServicios();
-            return new SimpleStringProperty(servicios.stream()
-                    .map(Servicio::getDescripcionServicio)
-                    .collect(Collectors.joining(", ")));
+            return new SimpleStringProperty(servicios != null && !servicios.isEmpty()
+                    ? servicios.stream().map(Servicio::getDescripcionServicio).collect(Collectors.joining(", "))
+                    : "Sin servicios");
         });
 
-        // Nueva columna para las rutas
         TableColumn<PrestadorServicio, String> rutasColumn = new TableColumn<>("Rutas");
         rutasColumn.setCellValueFactory(cellData -> {
             List<Ruta> rutas = cellData.getValue().getRutas();
-            return new SimpleStringProperty(rutas.stream()
-                    .map(ruta -> ruta.getSalida() + " - " + ruta.getDestino())
-                    .collect(Collectors.joining(", ")));
+            return new SimpleStringProperty(rutas != null && !rutas.isEmpty()
+                    ? rutas.stream().map(ruta -> ruta.getSalida() + " - " + ruta.getDestino())
+                            .collect(Collectors.joining(", "))
+                    : "Sin rutas");
         });
 
         // Agregar las columnas al TableView
