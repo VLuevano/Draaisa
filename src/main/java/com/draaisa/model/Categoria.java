@@ -18,9 +18,9 @@ public class Categoria {
 
     @Override
     public String toString() {
-        return "Categoria{id=" + idCategoria + ", nombre='" + nombreCategoria + "'}";
+        return nombreCategoria;
     }
-    
+
     // Getters y setters
     public int getIdCategoria() {
         return idCategoria;

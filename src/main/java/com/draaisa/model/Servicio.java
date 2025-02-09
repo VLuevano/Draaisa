@@ -58,4 +58,8 @@ public class Servicio {
         this.monedaServicio = monedaServicio;
     }
 
+    @Override
+    public String toString() {
+        return this.descripcionServicio;
+    }
 }

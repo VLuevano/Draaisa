@@ -19,6 +19,7 @@ public class Producto {
     private List<Fabricante> fabricantes;
     private List<Cliente> clientes;
     private List<Empresa> empresas;
+    private List<Servicio> servicios;
     private List<Precio> precios;
     private List<Categoria> categorias;
 
@@ -33,6 +34,7 @@ public class Producto {
         this.fabricantes = new ArrayList<>();
         this.clientes = new ArrayList<>();
         this.empresas = new ArrayList<>();
+        this.servicios = new ArrayList<>();
         this.precios = new ArrayList<>();
         this.categorias = new ArrayList<>();
     }
@@ -131,6 +133,14 @@ public class Producto {
         this.empresas = empresas;
     }
 
+    public List<Servicio> getServicios() {
+        return servicios;
+    }
+
+    public void setServicios(List<Servicio> servicios) {
+        this.servicios = servicios;
+    }
+
     public List<Precio> getPrecios() {
         return precios;
     }
@@ -146,4 +156,7 @@ public class Producto {
     public void setCategorias(List<Categoria> categorias) {
         this.categorias = categorias;
     }
+
+    
+    
 }

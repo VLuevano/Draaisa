@@ -63,6 +63,11 @@ public class Proveedor {
         this.correoProvProveedorProperty = new SimpleStringProperty(correoProv);
     }
 
+    public Proveedor(int idProveedor, String nombreProv) {
+        this.idProveedor = idProveedor;
+        this.nombreProv = nombreProv;
+    }
+
     public int getIdProveedor() {
         return idProveedor;
     }
@@ -229,14 +234,19 @@ public class Proveedor {
             if (categoriasString.length() > 0) {
                 categoriasString.append(", "); // Separador entre categorías
             }
-            categoriasString.append(categoria.getNombreCategoria()); // Asegúrate de que 'nombreCategoria' esté correctamente asignado
+            categoriasString.append(categoria.getNombreCategoria()); // Asegúrate de que 'nombreCategoria' esté
+                                                                     // correctamente asignado
         }
         return categoriasString.toString();
     }
 
     public void setCategoriasAsString(String categoriasAsString) {
         this.categoriasAsString = categoriasAsString;
-    }  
+    }
 
-    
+    @Override
+    public String toString() {
+        return this.nombreProv;
+    }
+
 }

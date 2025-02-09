@@ -37,9 +37,9 @@ public class Cliente {
     private String categoriasAsString;
 
     public Cliente(int idCliente, String nombreCliente, String nombreFiscal, int cpCliente, int noExtCliente,
-                   int noIntCliente, String rfcCliente, String municipio, String estado, String calle,
-                   String colonia, String ciudad, String pais, String telefonoCliente, String correoCliente,
-                   String curp, boolean esPersonaFisica) {
+            int noIntCliente, String rfcCliente, String municipio, String estado, String calle,
+            String colonia, String ciudad, String pais, String telefonoCliente, String correoCliente,
+            String curp, boolean esPersonaFisica) {
         this.idCliente = idCliente;
         this.nombreCliente = nombreCliente;
         this.nombreFiscal = nombreFiscal;
@@ -64,6 +64,11 @@ public class Cliente {
         this.noIntClienteProperty = new SimpleStringProperty(String.valueOf(noIntCliente));
         this.telefonoClienteProperty = new SimpleStringProperty(telefonoCliente);
         this.correoClienteProperty = new SimpleStringProperty(correoCliente);
+    }
+
+    public Cliente(int idCliente, String nombreCliente) {
+        this.idCliente = idCliente;
+        this.nombreCliente = nombreCliente;
     }
 
     public int getIdCliente() {
@@ -240,7 +245,8 @@ public class Cliente {
             if (categoriasString.length() > 0) {
                 categoriasString.append(", "); // Separador entre categorías
             }
-            categoriasString.append(categoria.getNombreCategoria()); // Asegúrate de que 'nombreCategoria' esté correctamente asignado
+            categoriasString.append(categoria.getNombreCategoria()); // Asegúrate de que 'nombreCategoria' esté
+                                                                     // correctamente asignado
         }
         return categoriasString.toString();
     }
@@ -248,4 +254,10 @@ public class Cliente {
     public void setCategoriasAsString(String categoriasAsString) {
         this.categoriasAsString = categoriasAsString;
     }
+
+    @Override
+    public String toString() {
+        return this.nombreCliente;
+    }
+
 }

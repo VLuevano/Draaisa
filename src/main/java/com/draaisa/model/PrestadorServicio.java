@@ -62,6 +62,11 @@ public class PrestadorServicio {
         this.rutas = new ArrayList<>();
     }
 
+    public PrestadorServicio(int idPrestador, String nombrePrestador) {
+        this.idPrestador = idPrestador;
+        this.nombrePrestador = nombrePrestador;
+    }
+
     public int getIdPrestador() {
         return idPrestador;
     }
@@ -226,4 +231,8 @@ public class PrestadorServicio {
         this.rutas.add(ruta);
     }
 
+    @Override
+    public String toString() {
+        return this.nombrePrestador;
+    }
 }

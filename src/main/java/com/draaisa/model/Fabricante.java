@@ -63,6 +63,11 @@ public class Fabricante {
         this.correoFabricanteProperty = new SimpleStringProperty(correoFabricante);
     }
 
+    public Fabricante(int idFabricante, String nombreFabricante) {
+        this.idFabricante = idFabricante;
+        this.nombreFabricante = nombreFabricante;
+    }
+
     public int getIdFabricante() {
         return idFabricante;
     }
@@ -237,5 +242,10 @@ public class Fabricante {
 
     public void setCategoriasAsString(String categoriasAsString) {
         this.categoriasAsString = categoriasAsString;
+    }
+
+    @Override
+    public String toString() {
+        return this.nombreFabricante;
     }
 }

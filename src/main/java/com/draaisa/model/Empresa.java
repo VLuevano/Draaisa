@@ -63,6 +63,11 @@ public class Empresa {
         this.correoEmpresaProperty = new SimpleStringProperty(correoEmpresa);
     }
 
+    public Empresa(int idEmpresa, String nombreEmpresa) {
+        this.idEmpresa = idEmpresa;
+        this.nombreEmpresa = nombreEmpresa;
+    }
+
     public int getIdEmpresa() {
         return idEmpresa;
     }
@@ -237,5 +242,10 @@ public class Empresa {
 
     public void setCategoriasAsString(String categoriasAsString) {
         this.categoriasAsString = categoriasAsString;
+    }
+
+    @Override
+    public String toString() {
+        return this.nombreEmpresa;
     }
 }

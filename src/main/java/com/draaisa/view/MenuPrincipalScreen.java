@@ -1,5 +1,7 @@
 package com.draaisa.view;
 
+import java.io.IOException;
+
 import com.draaisa.controller.UsuarioController;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -39,7 +41,11 @@ public class MenuPrincipalScreen {
         Menu menuProductos = new Menu("Productos");
         MenuItem abrirProductos = new MenuItem("Gestión de Productos");
         abrirProductos.setOnAction(e -> {
-            new ProductoView(usuarioActual).start(primaryStage);
+            try {
+                new ProductoView(usuarioActual).start(primaryStage);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         });
         menuProductos.getItems().add(abrirProductos);
 
