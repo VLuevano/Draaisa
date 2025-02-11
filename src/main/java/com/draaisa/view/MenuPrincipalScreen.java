@@ -1,6 +1,7 @@
 package com.draaisa.view;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import com.draaisa.controller.UsuarioController;
 import javafx.geometry.Pos;
@@ -44,6 +45,8 @@ public class MenuPrincipalScreen {
             try {
                 new ProductoView(usuarioActual).start(primaryStage);
             } catch (IOException e1) {
+                e1.printStackTrace();
+            } catch (SQLException e1) {
                 e1.printStackTrace();
             }
         });

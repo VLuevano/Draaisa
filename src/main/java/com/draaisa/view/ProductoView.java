@@ -1,12 +1,16 @@
 package com.draaisa.view;
 
 import javafx.application.Application;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import com.draaisa.controller.ProductoController;
 import com.draaisa.model.Producto;
@@ -17,7 +21,9 @@ import com.draaisa.model.Servicio;
 import com.draaisa.model.Fabricante;
 import com.draaisa.model.Cliente;
 
+import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -40,7 +46,7 @@ public class ProductoView extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws IOException {
+    public void start(Stage primaryStage) throws IOException, SQLException {
         primaryStage.setTitle("Gestión de Productos");
 
         MenuBar menuBar = new MenuBar();
@@ -50,7 +56,13 @@ public class ProductoView extends Application {
         MenuItem salirItem = new MenuItem("Salir");
 
         registrarItem.setOnAction(e -> mostrarFormularioRegistro());
-        consultarItem.setOnAction(e -> mostrarConsultaProductos());
+        consultarItem.setOnAction(e -> {
+            try {
+                mostrarConsultaProductos();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+        });
         salirItem.setOnAction(e -> mostrarMenuPrincipal(primaryStage));
 
         menuVista.getItems().addAll(registrarItem, consultarItem, salirItem);
@@ -246,15 +258,28 @@ public class ProductoView extends Application {
                         preciosClientes, moneda);
                 showAlert("Éxito", "Producto registrado correctamente", Alert.AlertType.INFORMATION);
 
-            layout.getChildren().clear();
+                layout.getChildren().clear();
 
-            VBox nuevoFormulario = crearFormularioRegistro();
-            nuevoFormulario.setPadding(new Insets(-21));
-            layout.getChildren().add(nuevoFormulario);
+                VBox nuevoFormulario = crearFormularioRegistro();
+                nuevoFormulario.setPadding(new Insets(-21));
+                layout.getChildren().add(nuevoFormulario);
 
             } catch (Exception ex) {
                 showAlert("Error", "Error al registrar el producto", Alert.AlertType.ERROR);
                 System.out.println(ex.getMessage());
+            }
+        });
+        Button cargarExcelBtn = new Button("Cargar desde Excel");
+        cargarExcelBtn.setId("cargarExcelBtn");
+        cargarExcelBtn.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white;"); // Naranja
+        cargarExcelBtn.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.getExtensionFilters()
+                    .add(new FileChooser.ExtensionFilter("Excel Files", "*.xls", "*.xlsx"));
+            File selectedFile = fileChooser.showOpenDialog(layout.getScene().getWindow());
+
+            if (selectedFile != null) {
+                productoController.registrarProductosDesdeExcel(selectedFile);
             }
         });
 
@@ -265,7 +290,7 @@ public class ProductoView extends Application {
 
         layout.getChildren().addAll(titulo, new Label("Nombre:"), nombreField, new Label("Ficha:"), fichaField,
                 new Label("Alterno:"), alternoField, new Label("Existencia:"), existenciaField, new Label("Moneda:"),
-                monedaCombo, new Label("Categoría:"), categoriaList.get(0), botonera, registrarBtn);
+                monedaCombo, new Label("Categoría:"), categoriaList.get(0), botonera, registrarBtn, cargarExcelBtn);
 
         ScrollPane scrollPane = new ScrollPane(layout);
         scrollPane.setFitToWidth(true);
@@ -273,47 +298,219 @@ public class ProductoView extends Application {
     }
 
     @SuppressWarnings("unchecked")
-    private VBox crearConsultaProductos() {
+    private VBox crearConsultaProductos() throws SQLException {
         VBox layout = new VBox(10);
         layout.setPadding(new Insets(20));
         layout.setStyle("-fx-border-color: black; -fx-border-width: 1px; -fx-border-radius: 5px;");
 
+        // Crear el campo de texto para el filtro
+        TextField filtroField = new TextField();
+        filtroField.setPromptText(
+                "Filtrar por ID, nombre, ficha, alterno, categoría, proveedor, empresa, fabricante, cliente, prestador de servicio");
+
+        // Crear la tabla de productos
         productoTable = new TableView<>();
+
+        // Definir las columnas
         TableColumn<Producto, Integer> idColumn = new TableColumn<>("ID");
         TableColumn<Producto, String> nombreColumn = new TableColumn<>("Nombre");
         TableColumn<Producto, String> fichaColumn = new TableColumn<>("Ficha");
         TableColumn<Producto, String> alternoColumn = new TableColumn<>("Alterno");
         TableColumn<Producto, Integer> existenciaColumn = new TableColumn<>("Existencia");
+        TableColumn<Producto, String> categoriasColumn = new TableColumn<>("Categorías");
+        TableColumn<Producto, String> proveedoresColumn = new TableColumn<>("Proveedores");
+        TableColumn<Producto, String> empresasColumn = new TableColumn<>("Empresas");
+        TableColumn<Producto, String> clientesColumn = new TableColumn<>("Clientes");
+        TableColumn<Producto, String> fabricantesColumn = new TableColumn<>("Fabricantes");
+        TableColumn<Producto, String> serviciosColumn = new TableColumn<>("Servicios");
 
+        // Establecer las celdas de las columnas
         idColumn.setCellValueFactory(cellData -> cellData.getValue().idProductoProperty().asObject());
         nombreColumn.setCellValueFactory(cellData -> cellData.getValue().nombreProductoProperty());
         fichaColumn.setCellValueFactory(cellData -> cellData.getValue().fichaProductoProperty());
         alternoColumn.setCellValueFactory(cellData -> cellData.getValue().alternoProductoProperty());
         existenciaColumn.setCellValueFactory(cellData -> cellData.getValue().existenciaProductoProperty().asObject());
 
-        productoTable.getColumns().addAll(idColumn, nombreColumn, fichaColumn, alternoColumn, existenciaColumn);
+        // Columnas adicionales para mostrar los datos relacionados
+        categoriasColumn
+                .setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getCategoriasString()));
+        proveedoresColumn
+                .setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getProveedoresString()));
+        empresasColumn
+                .setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getEmpresasString()));
+        clientesColumn
+                .setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getClientesString()));
+        fabricantesColumn
+                .setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFabricantesString()));
+        serviciosColumn
+                .setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getServiciosString()));
+
+        // Agregar todas las columnas a la tabla
+        productoTable.getColumns().addAll(idColumn, nombreColumn, fichaColumn, alternoColumn, existenciaColumn,
+                categoriasColumn, proveedoresColumn, empresasColumn, clientesColumn,
+                fabricantesColumn, serviciosColumn);
+
+        // Cargar los productos inicialmente
         cargarProductos();
 
-        layout.getChildren().add(productoTable);
+        // Filtrar productos cuando se escribe en el campo de texto
+        filtroField.textProperty().addListener((observable, oldValue, newValue) -> {
+            try {
+                productoTable.getItems().setAll(productoController.filtrarProductos(newValue));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        productoTable.setRowFactory(tv -> {
+            TableRow<Producto> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && !row.isEmpty()) {
+                    Producto productoSeleccionado = row.getItem();
+                    try {
+                        abrirVentanaEdicion(productoSeleccionado);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            return row;
+        });
+
+        // Agregar el campo de texto y la tabla al layout
+        layout.getChildren().addAll(filtroField, productoTable);
+
         return layout;
+    }
+
+    private void abrirVentanaEdicion(Producto producto) throws IOException {
+        productoController.cargarPreciosProducto(producto);
+        productoController.cargarFabricantesProducto(producto);
+        productoController.cargarClientesProducto(producto);
+        productoController.cargarEmpresasProducto(producto);
+
+        Stage ventanaEdicion = new Stage();
+        ventanaEdicion.setTitle("Editar Producto");
+
+        GridPane layout = new GridPane();
+        layout.setPadding(new Insets(20));
+        layout.setHgap(10);
+        layout.setVgap(10);
+
+        TextField nombreField = new TextField(producto.getNombreProducto());
+        TextField fichaField = new TextField(producto.getFichaProducto());
+        TextField alternoField = new TextField(producto.getAlternoProducto());
+        TextField existenciaField = new TextField(String.valueOf(producto.getExistenciaProducto()));
+
+        TextArea infoRelacionada = new TextArea(obtenerInformacionRelacionada(producto));
+        infoRelacionada.setEditable(false);
+
+        Button btnActualizar = new Button("Actualizar");
+        btnActualizar.setOnAction(e -> {
+            producto.setNombreProducto(nombreField.getText());
+            producto.setFichaProducto(fichaField.getText());
+            producto.setAlternoProducto(alternoField.getText());
+            producto.setExistenciaProducto(Integer.parseInt(existenciaField.getText()));
+
+            try {
+                productoController.actualizarProducto(producto);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            try {
+                cargarProductos();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+            ventanaEdicion.close();
+        });
+
+        Button btnEliminar = new Button("Eliminar");
+        btnEliminar.setOnAction(e -> {
+            try {
+                productoController.eliminarProducto(producto.getIdProducto());
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            try {
+                cargarProductos();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+            ventanaEdicion.close();
+        });
+
+        HBox botones = new HBox(10, btnActualizar, btnEliminar);
+        botones.setAlignment(Pos.CENTER);
+
+        layout.add(new Label("Nombre:"), 0, 0);
+        layout.add(nombreField, 1, 0);
+        layout.add(new Label("Ficha:"), 0, 1);
+        layout.add(fichaField, 1, 1);
+        layout.add(new Label("Alterno:"), 0, 2);
+        layout.add(alternoField, 1, 2);
+        layout.add(new Label("Existencia:"), 0, 3);
+        layout.add(existenciaField, 1, 3);
+        layout.add(new Label("Información Relacionada:"), 0, 4, 2, 1);
+        layout.add(infoRelacionada, 0, 5, 2, 1);
+        layout.add(botones, 0, 6, 2, 1);
+
+        Scene escena = new Scene(layout, 400, 350);
+        ventanaEdicion.setScene(escena);
+        ventanaEdicion.show();
+    }
+
+    private String obtenerInformacionRelacionada(Producto producto) {
+        StringBuilder info = new StringBuilder();
+
+        info.append("Proveedores:\n");
+        producto.getPreciosPorProveedor()
+                .forEach((proveedor, precio) -> info.append(proveedor.getNombreProv()).append(" - Precio: ")
+                        .append(precio.getMonto()).append(" ")
+                        .append(precio.getMoneda()).append("\n"));
+
+        info.append("\nClientes:\n");
+        producto.getPreciosPorCliente()
+                .forEach((cliente, precio) -> info.append(cliente.getNombreCliente()).append(" - Precio: ")
+                        .append(precio.getMonto()).append(" ")
+                        .append(precio.getMoneda()).append("\n"));
+
+        info.append("\nEmpresas:\n");
+        producto.getPreciosPorEmpresa()
+                .forEach((empresa, precio) -> info.append(empresa.getNombreEmpresa()).append(" - Precio: ")
+                        .append(precio.getMonto()).append(" ")
+                        .append(precio.getMoneda()).append("\n"));
+
+        info.append("\nFabricantes:\n");
+        producto.getPreciosPorFabricante()
+                .forEach((fabricante, precio) -> info.append(fabricante.getNombreFabricante()).append(" - Precio: ")
+                        .append(precio.getMonto()).append(" ")
+                        .append(precio.getMoneda()).append("\n"));
+
+        return info.toString();
+    }
+
+    private void cargarProductos() throws SQLException {
+        try {
+            ProductoController productoController = new ProductoController();
+            List<Producto> productos = productoController.consultarProductos();
+
+            // Agregar los productos con sus datos relacionados a la tabla
+            for (Producto producto : productos) {
+                productoTable.getItems().add(producto);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void mostrarFormularioRegistro() {
         root.getChildren().set(1, formularioRegistro);
     }
 
-    private void mostrarConsultaProductos() {
+    private void mostrarConsultaProductos() throws SQLException {
         cargarProductos();
         root.getChildren().set(1, consultaProductos);
-    }
-
-    private void cargarProductos() {
-        try {
-            List<Producto> productos = productoController.consultarProductos();
-            productoTable.getItems().setAll(productos);
-        } catch (Exception e) {
-            showAlert("Error", "Error al cargar los productos", Alert.AlertType.ERROR);
-        }
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
