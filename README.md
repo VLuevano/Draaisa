@@ -30,8 +30,7 @@ El Sistema Draaisa está diseñado para optimizar la gestión de inventarios, pe
 - Búsqueda avanzada por prestador, ruta, servicio, tipo de servicio, entre otros.
 
 ### Funcionalidades Adicionales:
-- **Inicio de sesión y gestión de cuentas**: Solo el administrador podrá gestionar cuentas de usuario, con diferentes niveles de permisos para agregar, editar, eliminar o consultar registros.
-- **Interfaz de usuario**: El sistema incluirá atajos de teclado para facilitar la navegación y manejo de registros.
+- **Inicio de sesión y gestión de cuentas**: Solo el administrador podrá gestionar cuentas de usuario.
 
 ## Especificaciones Técnicas
 
