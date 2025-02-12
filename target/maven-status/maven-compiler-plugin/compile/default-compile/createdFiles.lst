@@ -21,6 +21,7 @@ com\draaisa\controller\FabricanteController$1.class
 com\draaisa\controller\ProductoController.class
 com\draaisa\view\PrestadorServicioView.class
 com\draaisa\controller\ProveedorController$1.class
+com\draaisa\Main.class
 com\draaisa\controller\ProductoController$1.class
 com\draaisa\view\EmpresaView.class
 com\draaisa\model\PrestadorServicio.class
