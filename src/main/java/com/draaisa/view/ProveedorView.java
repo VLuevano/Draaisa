@@ -515,7 +515,11 @@ public class ProveedorView extends Application {
             alert.showAndWait().ifPresent(response -> {
                 if (response == ButtonType.OK) {
                     // Eliminar proveedor en la base de datos
-                    controller.eliminarProveedor(proveedorSeleccionado.getIdProveedor());
+                    try {
+                        controller.eliminarProveedor(proveedorSeleccionado.getIdProveedor());
+                    } catch (SQLException | IOException e1) {
+                        e1.printStackTrace();
+                    }
 
                     // Actualizar la tabla
                     actualizarTablaProveedores(tableView);
@@ -616,10 +620,10 @@ public class ProveedorView extends Application {
 
                 controller.registrarProveedorDesdeExcel(file);
 
-                showAlert(Alert.AlertType.INFORMATION, "Proveedores registrados desde Excel.");
+                //showAlert(Alert.AlertType.INFORMATION, "Proveedores registrados desde Excel.");
             } catch (Exception e) {
                 e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "Error al procesar el archivo Excel: " + e.getMessage());
+                //showAlert(Alert.AlertType.ERROR, "Error al procesar el archivo Excel: " + e.getMessage());
             }
         }
     }

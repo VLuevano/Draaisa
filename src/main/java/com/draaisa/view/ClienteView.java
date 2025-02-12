@@ -626,10 +626,10 @@ public class ClienteView extends Application {
 
                 controller.registrarClientesDesdeExcel(file);
 
-                showAlert(Alert.AlertType.INFORMATION, "Clientes registrados desde Excel.");
+                //showAlert(Alert.AlertType.INFORMATION, "Clientes registrados desde Excel.");
             } catch (Exception e) {
                 e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "Error al procesar el archivo Excel: " + e.getMessage());
+                //showAlert(Alert.AlertType.ERROR, "Error al procesar el archivo Excel: " + e.getMessage());
             }
         }
     }

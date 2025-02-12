@@ -2,6 +2,9 @@ package com.draaisa.controller;
 
 import com.draaisa.model.PrestadorServicio;
 import com.draaisa.model.Servicio;
+
+import javafx.scene.control.Alert;
+
 import com.draaisa.model.Ruta;
 import com.draaisa.database.DatabaseConnection;
 import org.apache.poi.ss.usermodel.*;
@@ -29,6 +32,26 @@ public class PrestadorServicioController {
 
     // Registrar Prestador de Servicio
     public boolean registrarPrestadorServicio(PrestadorServicio prestador) {
+
+        if (prestador == null) {
+            throw new IllegalArgumentException("El prestador no puede ser nulo.");
+        }
+        if (prestador.getNombrePrestador() == null || prestador.getNombrePrestador().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del prestador es obligatorio.");
+        }
+        if (!prestador.getRfcPrestador().matches("[A-Za-z0-9]{13}")) {
+            throw new IllegalArgumentException("El RFC debe contener 13 caracteres alfanuméricos.");
+        }
+        if (!prestador.getTelefonoPrestador().matches("\\d{10}")) {
+            throw new IllegalArgumentException("El teléfono debe tener exactamente 10 dígitos.");
+        }
+        if (!prestador.getCorreoPrestador().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new IllegalArgumentException("El correo electrónico no es válido.");
+        }
+        if (String.valueOf(prestador.getCpPrestador()).length() != 5) {
+            throw new IllegalArgumentException("El código postal debe tener 5 dígitos.");
+        }
+
         String insertPrestadorSQL = "INSERT INTO " + TABLE_PRESTADOR_SERVICIO
                 + " (nombrePrestador, cpPrestador, noExtPrestador, " +
                 "noIntPrestador, rfcPrestador, municipio, estado, calle, colonia, ciudad, pais, telefonoPrest, correoPrest, curpprestador, pfisicaprestador) "
@@ -94,6 +117,21 @@ public class PrestadorServicioController {
 
     // Registrar Servicio
     private boolean registrarServicio(Servicio servicio, int prestadorId) {
+
+        if (servicio == null || servicio.getDescripcionServicio() == null
+                || servicio.getDescripcionServicio().trim().isEmpty()) {
+            throw new IllegalArgumentException("Error: La descripción del servicio no puede estar vacía.");
+        }
+        if (servicio.getCostoServicio() <= 0) {
+            throw new IllegalArgumentException("Error: El costo del servicio debe ser mayor a cero.");
+        }
+        if (servicio.getMonedaServicio() == null || servicio.getMonedaServicio().trim().isEmpty()) {
+            throw new IllegalArgumentException("Error: La moneda del servicio no puede estar vacía.");
+        }
+        if (prestadorId <= 0) {
+            throw new IllegalArgumentException("Error: El ID del prestador debe ser mayor a cero.");
+        }
+
         String insertServicioSQL = "INSERT INTO " + TABLE_SERVICIO
                 + " (descripcionServicio, costoServicio, monedaServicio, idprestador) " +
                 "VALUES (?, ?, ?, ?)";
@@ -116,6 +154,17 @@ public class PrestadorServicioController {
 
     // Registrar Ruta
     private boolean registrarRuta(Ruta ruta, int prestadorId) {
+
+        if (ruta == null || ruta.getSalida() == null || ruta.getSalida().trim().isEmpty()) {
+            throw new IllegalArgumentException("Error: La salida de la ruta no puede estar vacía.");
+        }
+        if (ruta.getDestino() == null || ruta.getDestino().trim().isEmpty()) {
+            throw new IllegalArgumentException("Error: El destino de la ruta no puede estar vacío.");
+        }
+        if (prestadorId <= 0) {
+            throw new IllegalArgumentException("Error: El ID del prestador debe ser mayor a cero.");
+        }
+
         String insertRutaSQL = "INSERT INTO " + TABLE_RUTA + " (salidaruta, destinoruta) VALUES (?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(insertRutaSQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -139,6 +188,7 @@ public class PrestadorServicioController {
 
     // Registrar relación entre Prestador y Ruta
     private boolean registrarPrestadorRuta(int prestadorId, int rutaId) {
+        
         String insertPrestadorRutaSQL = "INSERT INTO " + TABLE_PRESTADOR_RUTA
                 + " (idprestador, idruta) VALUES (?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(insertPrestadorRutaSQL)) {
@@ -334,6 +384,29 @@ public class PrestadorServicioController {
 
     // Modificar Prestador de Servicio
     public boolean modificarPrestadorServicio(PrestadorServicio prestador) {
+
+        if (prestador.getRfcPrestador() == null || prestador.getCurp() == null || prestador.getNombrePrestador() == null || prestador.getTelefonoPrestador() == null || prestador.getCorreoPrestador() == null || prestador.getCpPrestador() == 0) {
+            throw new IllegalArgumentException("El prestador no puede ser nulo.");
+        }
+        if (prestador.getIdPrestador() <= 0) {
+            throw new IllegalArgumentException("El ID del prestador debe ser mayor a 0.");
+        }
+        if (prestador.getNombrePrestador() == null || prestador.getNombrePrestador().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del prestador es obligatorio.");
+        }
+        if (!prestador.getRfcPrestador().matches("[A-Za-z0-9]{13}")) {
+            throw new IllegalArgumentException("El RFC debe contener 13 caracteres alfanuméricos.");
+        }
+        if (!prestador.getTelefonoPrestador().matches("\\d{10}")) {
+            throw new IllegalArgumentException("El teléfono debe tener exactamente 10 dígitos.");
+        }
+        if (!prestador.getCorreoPrestador().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new IllegalArgumentException("El correo electrónico no es válido.");
+        }
+        if (String.valueOf(prestador.getCpPrestador()).length() != 5) {
+            throw new IllegalArgumentException("El código postal debe tener 5 dígitos.");
+        }
+
         String sql = "UPDATE prestadorServicio SET nombrePrestador = ?, cpprestador = ?, noExtPrestador = ?, noIntPrestador = ?, rfcPrestador = ?, municipio = ?, estado = ?, calle = ?, colonia = ?, ciudad = ?, pais = ?, telefonoPrest = ?, correoPrest = ?, curpprestador = ?, pfisicaprestador = ? WHERE idprestador = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -365,6 +438,11 @@ public class PrestadorServicioController {
 
     // Eliminar Prestador de Servicio
     public boolean eliminarPrestadorServicio(int prestadorId) {
+
+        if (prestadorId <= 0) {
+            throw new IllegalArgumentException("El ID del prestador debe ser mayor a 0.");
+        }
+
         String deletePrestadorRutaSQL = "DELETE FROM PrestadorRuta WHERE idPrestador = ?";
         String deleteServicioSQL = "DELETE FROM Servicio WHERE idPrestador = ?";
         String selectRutasSQL = "SELECT idRuta FROM PrestadorRuta WHERE idPrestador = ?";
@@ -447,81 +525,132 @@ public class PrestadorServicioController {
 
     // Método modificado para importar prestadores desde Excel
     public void importarPrestadoresDesdeExcel(File archivoExcel) {
+        StringBuilder errores = new StringBuilder();
+
         try (FileInputStream fis = new FileInputStream(archivoExcel);
                 Workbook workbook = new XSSFWorkbook(fis)) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            for (Row row : sheet) {
-                if (row.getRowNum() == 0)
-                    continue; // Saltar la primera fila (encabezados)
 
-                // Extraer los datos y manejar conversiones
-                String nombrePrestador = obtenerValorComoString(row.getCell(0));
-                int cpPrestador = (int) row.getCell(1).getNumericCellValue();
-                int noExtPrestador = (int) row.getCell(2).getNumericCellValue();
-                int noIntPrestador = (int) row.getCell(3).getNumericCellValue();
-                String rfcPrestador = obtenerValorComoString(row.getCell(4));
-                String municipio = obtenerValorComoString(row.getCell(5));
-                String estado = obtenerValorComoString(row.getCell(6));
-                String calle = obtenerValorComoString(row.getCell(7));
-                String colonia = obtenerValorComoString(row.getCell(8));
-                String ciudad = obtenerValorComoString(row.getCell(9));
-                String pais = obtenerValorComoString(row.getCell(10));
-                String telefonoPrestador = obtenerValorComoString(row.getCell(11));
-                String correoPrestador = obtenerValorComoString(row.getCell(12));
-                String curp = obtenerValorComoString(row.getCell(13));
-                boolean esPersonaFisica = Boolean.parseBoolean(obtenerValorComoString(row.getCell(14)));
-
-                // Crear el objeto PrestadorServicio
-                PrestadorServicio prestador = new PrestadorServicio();
-                prestador.setNombrePrestador(nombrePrestador);
-                prestador.setCpPrestador(cpPrestador);
-                prestador.setNoExtPrestador(noExtPrestador);
-                prestador.setNoIntPrestador(noIntPrestador);
-                prestador.setRfcPrestador(rfcPrestador);
-                prestador.setMunicipio(municipio);
-                prestador.setEstado(estado);
-                prestador.setCalle(calle);
-                prestador.setColonia(colonia);
-                prestador.setCiudad(ciudad);
-                prestador.setPais(pais);
-                prestador.setTelefonoPrestador(telefonoPrestador);
-                prestador.setCorreoPrestador(correoPrestador);
-                prestador.setCurp(curp);
-                prestador.setEsPersonaFisica(esPersonaFisica);
-
-                // Cargar Servicios
-                List<Servicio> serviciosList = new ArrayList<>();
-                String descripcionServicio = obtenerValorComoString(row.getCell(15));
-                double costoServicio = row.getCell(16).getNumericCellValue();
-                String monedaServicio = obtenerValorComoString(row.getCell(17));
-
-                Servicio servicio = new Servicio();
-                servicio.setDescripcionServicio(descripcionServicio);
-                servicio.setCostoServicio(costoServicio);
-                servicio.setMonedaServicio(monedaServicio);
-
-                serviciosList.add(servicio);
-                prestador.setServicios(serviciosList);
-
-                // Cargar Rutas
-                List<Ruta> rutasList = new ArrayList<>();
-                String salidaRuta = obtenerValorComoString(row.getCell(18));
-                String destinoRuta = obtenerValorComoString(row.getCell(19));
-
-                Ruta ruta = new Ruta();
-                ruta.setSalida(salidaRuta);
-                ruta.setDestino(destinoRuta);
-
-                rutasList.add(ruta);
-                prestador.setRutas(rutasList);
-
-                // Registrar el prestador con sus servicios y rutas
-                registrarPrestadorServicio(prestador);
+            if (sheet.getPhysicalNumberOfRows() <= 1) {
+                showAlert(Alert.AlertType.WARNING, "El archivo Excel está vacío o solo tiene encabezados.");
+                return;
             }
+
+            for (Row row : sheet) {
+                try {
+                    if (row.getRowNum() == 0)
+                        continue; // Saltar la primera fila (encabezados)
+
+                    // Extraer los datos y manejar conversiones
+                    String nombrePrestador = obtenerValorComoString(row.getCell(0));
+                    int cpPrestador = (int) row.getCell(1).getNumericCellValue();
+                    int noExtPrestador = (int) row.getCell(2).getNumericCellValue();
+                    int noIntPrestador = (int) row.getCell(3).getNumericCellValue();
+                    String rfcPrestador = obtenerValorComoString(row.getCell(4));
+                    String municipio = obtenerValorComoString(row.getCell(5));
+                    String estado = obtenerValorComoString(row.getCell(6));
+                    String calle = obtenerValorComoString(row.getCell(7));
+                    String colonia = obtenerValorComoString(row.getCell(8));
+                    String ciudad = obtenerValorComoString(row.getCell(9));
+                    String pais = obtenerValorComoString(row.getCell(10));
+                    String telefonoPrestador = obtenerValorComoString(row.getCell(11));
+                    String correoPrestador = obtenerValorComoString(row.getCell(12));
+                    String curp = obtenerValorComoString(row.getCell(13));
+                    boolean esPersonaFisica = Boolean.parseBoolean(obtenerValorComoString(row.getCell(14)));
+
+                    // Crear el objeto PrestadorServicio
+                    PrestadorServicio prestador = new PrestadorServicio();
+                    prestador.setNombrePrestador(nombrePrestador);
+                    prestador.setCpPrestador(cpPrestador);
+                    prestador.setNoExtPrestador(noExtPrestador);
+                    prestador.setNoIntPrestador(noIntPrestador);
+                    prestador.setRfcPrestador(rfcPrestador);
+                    prestador.setMunicipio(municipio);
+                    prestador.setEstado(estado);
+                    prestador.setCalle(calle);
+                    prestador.setColonia(colonia);
+                    prestador.setCiudad(ciudad);
+                    prestador.setPais(pais);
+                    prestador.setTelefonoPrestador(telefonoPrestador);
+                    prestador.setCorreoPrestador(correoPrestador);
+                    prestador.setCurp(curp);
+                    prestador.setEsPersonaFisica(esPersonaFisica);
+
+                    if (nombrePrestador.isEmpty() || rfcPrestador.isEmpty() || telefonoPrestador.isEmpty()
+                            || correoPrestador.isEmpty()) {
+                        errores.append("Fila ").append(row.getRowNum() + 1).append(": Datos incompletos\n");
+                    }
+                    if (!rfcPrestador.matches("[A-Za-z0-9]{13}")) {
+                        errores.append("Fila ").append(row.getRowNum() + 1).append(": RFC inválido\n");
+                    }
+                    if (!telefonoPrestador.matches("\\d{10}")) {
+                        errores.append("Fila ").append(row.getRowNum() + 1).append(": Teléfono inválido\n");
+                    }
+                    if (!correoPrestador.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                        errores.append("Fila ").append(row.getRowNum() + 1).append(": Correo inválido\n");
+                    }
+                    if (String.valueOf(cpPrestador).length() != 5) {
+                        errores.append("Fila ").append(row.getRowNum() + 1).append(": Código postal inválido\n");
+                    }
+                    if (!curp.matches("[A-Za-z0-9]{18}")) {
+                        errores.append("Fila ").append(row.getRowNum() + 1).append(": CURP inválida\n");
+                    }
+
+                    // Si hubo errores, continuar con la siguiente fila
+                    if (errores.length() > 0) {
+                        continue;
+                    }
+
+                    // Cargar Servicios
+                    List<Servicio> serviciosList = new ArrayList<>();
+                    String descripcionServicio = obtenerValorComoString(row.getCell(15));
+                    double costoServicio = row.getCell(16).getNumericCellValue();
+                    String monedaServicio = obtenerValorComoString(row.getCell(17));
+
+                    Servicio servicio = new Servicio();
+                    servicio.setDescripcionServicio(descripcionServicio);
+                    servicio.setCostoServicio(costoServicio);
+                    servicio.setMonedaServicio(monedaServicio);
+
+                    serviciosList.add(servicio);
+                    prestador.setServicios(serviciosList);
+
+                    // Cargar Rutas
+                    List<Ruta> rutasList = new ArrayList<>();
+                    String salidaRuta = obtenerValorComoString(row.getCell(18));
+                    String destinoRuta = obtenerValorComoString(row.getCell(19));
+
+                    Ruta ruta = new Ruta();
+                    ruta.setSalida(salidaRuta);
+                    ruta.setDestino(destinoRuta);
+
+                    rutasList.add(ruta);
+                    prestador.setRutas(rutasList);
+
+                    // Registrar el prestador con sus servicios y rutas
+                    registrarPrestadorServicio(prestador);
+                } catch (Exception e) {
+                    errores.append("Error procesando fila ").append(row.getRowNum()).append(": ").append(e.getMessage())
+                            .append("\n");
+                }
+            }
+
+            if (errores.length() > 0) {
+                showAlert(Alert.AlertType.ERROR, errores.toString());
+            } else {
+                showAlert(Alert.AlertType.INFORMATION, "Prestadores registrados desde Excel.");
+            }
+
         } catch (IOException e) {
-            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error al leer el archivo Excel: " + e.getMessage());
         }
+    }
+
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type);
+        alert.setContentText(message);
+        alert.show();
     }
 
 }

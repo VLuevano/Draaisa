@@ -21,7 +21,7 @@ public class LoginScreen extends Application {
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
-        primaryStage.getIcons().add(new Image(getClass().getResource("/images/draaisa_logo.jpg").toExternalForm()));
+        primaryStage.getIcons().add(new Image(getClass().getResource("/images/PriceStockerIcon.png").toExternalForm()));
         mostrarPantallaInicio();
     }
 
@@ -42,11 +42,11 @@ public class LoginScreen extends Application {
         scene.getStylesheets().add(getClass().getResource("/styles/styles.css").toExternalForm());
 
         ImageView imgLogo = new ImageView(
-                new Image(getClass().getResource("/images/draaisa_logo.jpg").toExternalForm()));
-        imgLogo.setFitWidth(120);
+                new Image(getClass().getResource("/images/PriceStockerLogo.png").toExternalForm()));
+        imgLogo.setFitWidth(300);
         imgLogo.setPreserveRatio(true);
 
-        Label lblTitulo = new Label("Draaisa - Sistema de Inventario");
+        Label lblTitulo = new Label("Sistema de Inventario");
         lblTitulo.getStyleClass().add("titulo");
 
         Button btnIniciar = new Button("Iniciar sesión");
@@ -85,14 +85,27 @@ public class LoginScreen extends Application {
         }
 
         Button btnSeleccionar = new Button("Seleccionar");
+        Button btnRetroceder = new Button();
+        ImageView imgRetroceder = new ImageView(
+                new Image(getClass().getResource("/images/flecha.png").toExternalForm()));
+        imgRetroceder.setFitHeight(40);
+        imgRetroceder.setFitWidth(40);
+        btnRetroceder.setGraphic(imgRetroceder);
+        btnRetroceder.setStyle("-fx-background-color: transparent;");
+
         btnSeleccionar.setOnAction(e -> {
             String nombreUsuario = listaUsuarios.getSelectionModel().getSelectedItem();
             if (nombreUsuario != null) {
                 mostrarPantallaContrasena(nombreUsuario);
             }
         });
+        btnRetroceder.setOnAction(e -> mostrarPantallaInicio());
 
-        root.getChildren().addAll(lblTitulo, listaUsuarios, btnSeleccionar);
+        HBox header = new HBox(10);
+        header.setAlignment(Pos.TOP_LEFT);
+        header.getChildren().add(btnRetroceder);
+
+        root.getChildren().addAll(header, lblTitulo, listaUsuarios, btnSeleccionar);
         primaryStage.setScene(scene);
         centrarPantalla(primaryStage);
     }
@@ -104,17 +117,25 @@ public class LoginScreen extends Application {
 
         VBox root = new VBox(15);
         root.setAlignment(Pos.CENTER);
-    
+
         Scene scene = new Scene(root, 350, 450);
         scene.getStylesheets().add(getClass().getResource("/styles/styles.css").toExternalForm());
-    
+
         Label lblTitulo = new Label("Ingresa tu contraseña");
         lblTitulo.getStyleClass().add("titulo");
-    
+
         PasswordField txtContrasena = new PasswordField();
         txtContrasena.setPromptText("Contraseña");
-    
+
         Button btnIngresar = new Button("Ingresar");
+        Button btnRetroceder = new Button();
+        ImageView imgRetroceder = new ImageView(
+                new Image(getClass().getResource("/images/flecha.png").toExternalForm()));
+        imgRetroceder.setFitHeight(40);
+        imgRetroceder.setFitWidth(40);
+        btnRetroceder.setGraphic(imgRetroceder);
+        btnRetroceder.setStyle("-fx-background-color: transparent;");
+
         btnIngresar.setOnAction(e -> {
             if (UsuarioController.iniciarSesion(nombreUsuario, txtContrasena.getText())) {
                 usuarioActual = nombreUsuario;
@@ -126,8 +147,13 @@ public class LoginScreen extends Application {
                 alerta.show();
             }
         });
-    
-        root.getChildren().addAll(lblTitulo, txtContrasena, btnIngresar);
+        btnRetroceder.setOnAction(e -> mostrarSeleccionUsuario());
+
+        HBox header = new HBox(10);
+        header.setAlignment(Pos.TOP_LEFT);
+        header.getChildren().add(btnRetroceder);
+
+        root.getChildren().addAll(header, lblTitulo, txtContrasena, btnIngresar);
         primaryStage.setScene(scene);
         centrarPantalla(primaryStage);
     }

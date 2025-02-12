@@ -4,6 +4,8 @@ import com.draaisa.database.DatabaseConnection;
 import com.draaisa.model.Categoria;
 import com.draaisa.model.Cliente;
 
+import javafx.scene.control.Alert;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,6 +26,29 @@ public class ClienteController {
 
     // Método para registrar cliente desde formulario
     public void registrarCliente(Cliente cliente, List<Categoria> categorias) {
+
+        if (cliente == null) {
+            throw new IllegalArgumentException("El cliente no puede ser nulo.");
+        }
+        if (cliente.getNombreCliente() == null || cliente.getNombreCliente().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del cliente es obligatorio.");
+        }
+        if (!cliente.getRfcCliente().matches("[A-Za-z0-9]{13}")) {
+            throw new IllegalArgumentException("El RFC debe contener 13 caracteres alfanuméricos.");
+        }
+        if (!cliente.getTelefonoCliente().matches("\\d{10}")) {
+            throw new IllegalArgumentException("El teléfono debe tener exactamente 10 dígitos.");
+        }
+        if (!cliente.getCorreoCliente().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new IllegalArgumentException("El correo electrónico no es válido.");
+        }
+        if (String.valueOf(cliente.getCpCliente()).length() != 5) {
+            throw new IllegalArgumentException("El código postal debe tener 5 dígitos.");
+        }
+        if (categorias == null) {
+            categorias = new ArrayList<>();
+        }
+
         String sqlCliente = "INSERT INTO cliente (nombrecliente, nombrefcliente, cpcliente, noExtCliente, noIntCliente, rfcCliente, municipio, estado, calle, colonia, ciudad, pais, telefonoCliente, correoCliente, curpCliente, pfisicaCliente) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idCliente";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -69,6 +94,17 @@ public class ClienteController {
 
     // Método para obtener o registrar una categoría
     private int obtenerOCrearCategoria(Categoria categoria) throws SQLException, IOException {
+
+        if (categoria == null) {
+            throw new IllegalArgumentException("La categoría no puede ser nula.");
+        }
+        if (categoria.getNombreCategoria() == null || categoria.getNombreCategoria().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre de la categoría es obligatorio.");
+        }
+        if (categoria.getDescripcionCategoria() == null) {
+            categoria.setDescripcionCategoria("Sin descripción");
+        }
+
         String sqlObtenerId = "SELECT idCategoria FROM categoria WHERE nombreCategoria = ?";
         String sqlInsertCategoria = "INSERT INTO categoria (nombrecategoria, desccategoria) VALUES (?, ?) ON CONFLICT (nombrecategoria) DO NOTHING RETURNING idcategoria";
 
@@ -107,6 +143,29 @@ public class ClienteController {
 
     // Método para modificar un cliente
     public void modificarCliente(Cliente cliente) {
+
+        if (cliente == null) {
+            throw new IllegalArgumentException("El cliente no puede ser nulo.");
+        }
+        if (cliente.getIdCliente() <= 0) {
+            throw new IllegalArgumentException("El ID del cliente debe ser mayor a 0.");
+        }
+        if (cliente.getNombreCliente() == null || cliente.getNombreCliente().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del cliente es obligatorio.");
+        }
+        if (!cliente.getRfcCliente().matches("[A-Za-z0-9]{13}")) {
+            throw new IllegalArgumentException("El RFC debe contener 13 caracteres alfanuméricos.");
+        }
+        if (!cliente.getTelefonoCliente().matches("\\d{10}")) {
+            throw new IllegalArgumentException("El teléfono debe tener exactamente 10 dígitos.");
+        }
+        if (!cliente.getCorreoCliente().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new IllegalArgumentException("El correo electrónico no es válido.");
+        }
+        if (String.valueOf(cliente.getCpCliente()).length() != 5) {
+            throw new IllegalArgumentException("El código postal debe tener 5 dígitos.");
+        }
+
         String sql = "UPDATE cliente SET nombrecliente = ?, nombrefcliente = ?, cpcliente = ?, noExtCliente = ?, noIntCliente = ?, rfcCliente = ?, municipio = ?, estado = ?, calle = ?, colonia = ?, ciudad = ?, pais = ?, telefonoCliente = ?, correocliente = ?, curpCliente = ?, pfisicaCliente = ? WHERE idcliente = ?";
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -138,6 +197,11 @@ public class ClienteController {
     }
 
     public List<Cliente> buscarClientes(String filtro) {
+
+        if (filtro == null || filtro.trim().isEmpty()) {
+            filtro = "1=1";
+        }
+
         List<Cliente> clientes = new ArrayList<>();
         String[] filtros = filtro.split(","); // Separar por comas
 
@@ -257,6 +321,11 @@ public class ClienteController {
 
     // Método para eliminar clientees
     public void eliminarCliente(int idCliente) {
+
+        if (idCliente <= 0) {
+            throw new IllegalArgumentException("El ID del cliente debe ser mayor a 0.");
+        }
+
         String sqlEliminarCategoria = "DELETE FROM clientecategoria WHERE idcliente = ?";
         String sqlEliminarCliente = "DELETE FROM cliente WHERE idCliente = ?";
 
@@ -304,23 +373,23 @@ public class ClienteController {
             while (rs.next()) {
                 // Crear cliente
                 Cliente cliente = new Cliente(
-                    rs.getInt("idCliente"),
-                    rs.getString("nombreCliente"),
-                    rs.getString("nombrefCliente"),
-                    rs.getInt("cpCliente"),
-                    rs.getInt("noExtCliente"),
-                    rs.getInt("noIntCliente"),
-                    rs.getString("rfcCliente"),
-                    rs.getString("municipio"),
-                    rs.getString("estado"),
-                    rs.getString("calle"),
-                    rs.getString("colonia"),
-                    rs.getString("ciudad"),
-                    rs.getString("pais"),
-                    rs.getString("telefonoCliente"),
-                    rs.getString("correoCliente"),
-                    rs.getString("curpCliente"),
-                    rs.getBoolean("pfisicaCliente"));
+                        rs.getInt("idCliente"),
+                        rs.getString("nombreCliente"),
+                        rs.getString("nombrefCliente"),
+                        rs.getInt("cpCliente"),
+                        rs.getInt("noExtCliente"),
+                        rs.getInt("noIntCliente"),
+                        rs.getString("rfcCliente"),
+                        rs.getString("municipio"),
+                        rs.getString("estado"),
+                        rs.getString("calle"),
+                        rs.getString("colonia"),
+                        rs.getString("ciudad"),
+                        rs.getString("pais"),
+                        rs.getString("telefonoCliente"),
+                        rs.getString("correoCliente"),
+                        rs.getString("curpCliente"),
+                        rs.getBoolean("pfisicaCliente"));
 
                 // Si el cliente ya está en el mapa, usamos el existente y agregamos las
                 // categorías
@@ -371,10 +440,17 @@ public class ClienteController {
 
     // Método para registrar clientes desde archivo Excel
     public void registrarClientesDesdeExcel(File excelFile) {
+        StringBuilder errores = new StringBuilder();
+
         try (FileInputStream fis = new FileInputStream(excelFile);
                 Workbook workbook = new XSSFWorkbook(fis)) {
 
             Sheet sheet = workbook.getSheetAt(0);
+            if (sheet.getPhysicalNumberOfRows() <= 1) {
+                showAlert(Alert.AlertType.WARNING, "El archivo Excel está vacío o solo tiene encabezados.");
+                return;
+            }
+
             for (Row row : sheet) {
                 if (row.getRowNum() == 0)
                     continue;
@@ -383,9 +459,9 @@ public class ClienteController {
                     // Usar el método obtenerValorCelda para obtener los valores de las celdas
                     String nombre = getStringCellValue(row.getCell(0));
                     String nombrefiscal = getStringCellValue(row.getCell(1));
-                    String cp = getStringCellValue(row.getCell(2));
-                    String noExt = getStringCellValue(row.getCell(3));
-                    String noInt = getStringCellValue(row.getCell(4));
+                    String cpStr = getStringCellValue(row.getCell(2));
+                    String noExtStr = getStringCellValue(row.getCell(3));
+                    String noIntStr = getStringCellValue(row.getCell(4));
                     String rfc = getStringCellValue(row.getCell(5));
                     String municipio = getStringCellValue(row.getCell(6));
                     String estado = getStringCellValue(row.getCell(7));
@@ -396,10 +472,50 @@ public class ClienteController {
                     String telefono = getStringCellValue(row.getCell(12));
                     String correo = getStringCellValue(row.getCell(13));
                     String curp = getStringCellValue(row.getCell(14));
-                    boolean esFisica = Boolean.parseBoolean(getStringCellValue(row.getCell(15)));
+                    String esFisicaStr = (getStringCellValue(row.getCell(15)));
 
-                    Cliente cliente = new Cliente(0, nombre, nombrefiscal, Integer.parseInt(cp), Integer.parseInt(noExt),
-                            Integer.parseInt(noInt), rfc, municipio, estado, calle, colonia, ciudad, pais, telefono,
+                    // Validaciones previas
+                    if (nombre.isEmpty() || cpStr.isEmpty() || rfc.isEmpty() || telefono.isEmpty()
+                            || correo.isEmpty()) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Faltan datos obligatorios.\n");
+                    }
+                    if (!cpStr.matches("\\d{5}")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Código Postal inválido.\n");
+                    }
+                    if (!noExtStr.matches("\\d*")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Número exterior inválido.\n");
+                    }
+                    if (!noIntStr.matches("\\d*")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Número interior inválido.\n");
+                    }
+                    if (!rfc.matches("[A-Za-z0-9]{13}")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": RFC inválido.\n");
+                    }
+                    if (!telefono.matches("\\d{10}")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Teléfono inválido.\n");
+                    }
+                    if (!correo.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Correo electrónico inválido.\n");
+                    }
+                    if (!curp.isEmpty() && !curp.matches("[A-Z0-9]{18}")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": CURP inválida.\n");
+                    }
+
+                    // Si hubo errores, continuar con la siguiente fila
+                    if (errores.length() > 0) {
+                        continue;
+                    }
+
+                    // Convertir valores numéricos
+                    int cp = Integer.parseInt(cpStr);
+                    int noExt = noExtStr.isEmpty() ? 0 : Integer.parseInt(noExtStr);
+                    int noInt = noIntStr.isEmpty() ? 0 : Integer.parseInt(noIntStr);
+
+                    // Validación de esFisica
+                    boolean esFisica = Boolean.parseBoolean(esFisicaStr);
+
+                    Cliente cliente = new Cliente(0, nombre, nombrefiscal, cp, noExt,
+                            noInt, rfc, municipio, estado, calle, colonia, ciudad, pais, telefono,
                             correo, curp, esFisica);
 
                     List<Categoria> categorias = new ArrayList<>();
@@ -410,7 +526,6 @@ public class ClienteController {
                             if (!categoriaNombre.isEmpty()) {
                                 // Directamente se agrega la categoría sin obtener el ID
                                 categorias.add(new Categoria(0, categoriaNombre, "Descripción de " + categoriaNombre));
-                                System.out.println("Categoría " + categoriaNombre + " registrada.");
                             }
                         }
                     }
@@ -419,15 +534,19 @@ public class ClienteController {
                     registrarCliente(cliente, categorias);
 
                 } catch (Exception e) {
-                    System.out.println("Error procesando fila " + row.getRowNum() + ": " + e.getMessage());
-                    e.printStackTrace();
+                    errores.append("Error procesando fila ").append(row.getRowNum()).append(": ").append(e.getMessage())
+                            .append("\n");
                 }
             }
-            System.out.println("Clientes registrados desde el archivo Excel.");
+
+            if (errores.length() > 0) {
+                showAlert(Alert.AlertType.ERROR, errores.toString());
+            } else {
+                showAlert(Alert.AlertType.INFORMATION, "Clientes registrados desde Excel.");
+            }
 
         } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error al leer el archivo Excel.");
+            showAlert(Alert.AlertType.ERROR, "Error al leer el archivo Excel: " + e.getMessage());
         }
     }
 
@@ -445,6 +564,12 @@ public class ClienteController {
             default:
                 return "";
         }
+    }
+
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type);
+        alert.setContentText(message);
+        alert.show();
     }
 
 }

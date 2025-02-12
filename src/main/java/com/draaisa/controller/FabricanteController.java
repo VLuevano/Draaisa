@@ -4,6 +4,8 @@ import com.draaisa.database.DatabaseConnection;
 import com.draaisa.model.Categoria;
 import com.draaisa.model.Fabricante;
 
+import javafx.scene.control.Alert;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -22,9 +24,32 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class FabricanteController {
 
-    // Método para registrar Fabricante desde formulario
+    // Método para registrar fabricante desde formulario
     public void registrarFabricante(Fabricante fabricante, List<Categoria> categorias) {
-        String sqlFabricante = "INSERT INTO fabricante (nombrefabricante, cpFabricante, noExtFabricante, noIntFabricante, rfcFabricante, municipio, estado, calle, colonia, ciudad, pais, telefonoFabricante, correoFabricante, curpFabricante, pfisicaFabricante) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idFabricante";
+
+        if (fabricante == null) {
+            throw new IllegalArgumentException("El fabricante no puede ser nulo.");
+        }
+        if (fabricante.getNombreFabricante() == null || fabricante.getNombreFabricante().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del fabricante es obligatorio.");
+        }
+        if (!fabricante.getRfcFabricante().matches("[A-Za-z0-9]{13}")) {
+            throw new IllegalArgumentException("El RFC debe contener 13 caracteres alfanuméricos.");
+        }
+        if (!fabricante.getTelefonoFabricante().matches("\\d{10}")) {
+            throw new IllegalArgumentException("El teléfono debe tener exactamente 10 dígitos.");
+        }
+        if (!fabricante.getCorreoFabricante().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new IllegalArgumentException("El correo electrónico no es válido.");
+        }
+        if (String.valueOf(fabricante.getCpFabricante()).length() != 5) {
+            throw new IllegalArgumentException("El código postal debe tener 5 dígitos.");
+        }
+        if (categorias == null) {
+            categorias = new ArrayList<>();
+        }
+
+        String sqlFabricante = "INSERT INTO fabricante (nombrefabricante, cpFabricante, noExtFabricante, noIntFabricante, rfcFabricante, municipio, estado, calle, colonia, ciudad, pais, telefonoFabricante, correoFabricante, curpfabricante, pfisicafabricante) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING idFabricante";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmtFabricante = conn.prepareStatement(sqlFabricante,
@@ -68,6 +93,17 @@ public class FabricanteController {
 
     // Método para obtener o registrar una categoría
     private int obtenerOCrearCategoria(Categoria categoria) throws SQLException, IOException {
+
+        if (categoria == null) {
+            throw new IllegalArgumentException("La categoría no puede ser nula.");
+        }
+        if (categoria.getNombreCategoria() == null || categoria.getNombreCategoria().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre de la categoría es obligatorio.");
+        }
+        if (categoria.getDescripcionCategoria() == null) {
+            categoria.setDescripcionCategoria("Sin descripción");
+        }
+
         String sqlObtenerId = "SELECT idCategoria FROM categoria WHERE nombreCategoria = ?";
         String sqlInsertCategoria = "INSERT INTO categoria (nombrecategoria, desccategoria) VALUES (?, ?) ON CONFLICT (nombrecategoria) DO NOTHING RETURNING idcategoria";
 
@@ -95,6 +131,14 @@ public class FabricanteController {
 
     // Método para asociar fabricante con categoría
     private void asociarFabricanteConCategoria(int idFabricante, int idCategoria) throws SQLException, IOException {
+
+        if (idFabricante <= 0) {
+            throw new IllegalArgumentException("El ID del fabricante debe ser mayor a 0.");
+        }
+        if (idCategoria <= 0) {
+            throw new IllegalArgumentException("El ID de la categoría debe ser mayor a 0.");
+        }
+
         String sql = "INSERT INTO fabricantecategoria (idfabricante, idcategoria) VALUES (?, ?) ON CONFLICT DO NOTHING";
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -106,6 +150,29 @@ public class FabricanteController {
 
     // Método para modificar un fabricante
     public void modificarFabricante(Fabricante fabricante) {
+
+        if (fabricante == null) {
+            throw new IllegalArgumentException("El fabricante no puede ser nulo.");
+        }
+        if (fabricante.getIdFabricante() <= 0) {
+            throw new IllegalArgumentException("El ID del fabricante debe ser mayor a 0.");
+        }
+        if (fabricante.getNombreFabricante() == null || fabricante.getNombreFabricante().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del fabricante es obligatorio.");
+        }
+        if (!fabricante.getRfcFabricante().matches("[A-Za-z0-9]{13}")) {
+            throw new IllegalArgumentException("El RFC debe contener 13 caracteres alfanuméricos.");
+        }
+        if (!fabricante.getTelefonoFabricante().matches("\\d{10}")) {
+            throw new IllegalArgumentException("El teléfono debe tener exactamente 10 dígitos.");
+        }
+        if (!fabricante.getCorreoFabricante().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new IllegalArgumentException("El correo electrónico no es válido.");
+        }
+        if (String.valueOf(fabricante.getCpFabricante()).length() != 5) {
+            throw new IllegalArgumentException("El código postal debe tener 5 dígitos.");
+        }
+
         String sql = "UPDATE fabricante SET nombrefabricante = ?, cpfabricante = ?, noExtFabricante = ?, noIntFabricante = ?, rfcFabricante = ?, municipio = ?, estado = ?, calle = ?, colonia = ?, ciudad = ?, pais = ?, telefonoFabricante = ?, correofabricante = ?, curpfabricante = ?, pfisicafabricante = ? WHERE idfabricante = ?";
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -136,11 +203,16 @@ public class FabricanteController {
     }
 
     public List<Fabricante> buscarFabricantes(String filtro) {
+
+        if (filtro == null || filtro.trim().isEmpty()) {
+            filtro = "1=1"; // Devolver todos los fabricantes
+        }
+
         List<Fabricante> fabricantes = new ArrayList<>();
         String[] filtros = filtro.split(","); // Separar por comas
 
         // Crear condiciones dinámicas para la búsqueda de fabricantes
-        StringBuilder sql = new StringBuilder("SELECT f.* FROM fabricante f WHERE ");
+        StringBuilder sql = new StringBuilder("SELECT p.* FROM fabricante p WHERE ");
         List<String> condiciones = new ArrayList<>();
 
         // Condiciones de búsqueda por cada filtro
@@ -148,18 +220,18 @@ public class FabricanteController {
             palabra = palabra.trim();
 
             if (palabra.matches("\\d+")) { // Filtrar por ID
-                condiciones.add("f.idFabricante = ?");
+                condiciones.add("p.idFabricante = ?");
             } else if (palabra.matches("[a-zA-Z]+")) { // Filtrar por categoría
                 condiciones.add(
-                        "f.idFabricante IN (SELECT fc.idFabricante FROM fabricantecategoria fc INNER JOIN categoria c ON fc.idCategoria = c.idCategoria WHERE c.nombreCategoria ILIKE ?)");
+                        "p.idFabricante IN (SELECT pc.idFabricante FROM fabricantecategoria pc INNER JOIN categoria c ON pc.idCategoria = c.idCategoria WHERE c.nombreCategoria ILIKE ?)");
             } else if (palabra.matches("\\d{10}")) { // Filtrar por teléfono
-                condiciones.add("f.telefonoFabricante = ?");
+                condiciones.add("p.telefonoFabricante = ?");
             } else if (palabra.matches("[A-Za-z0-9]{13}")) { // Filtrar por RFC
-                condiciones.add("f.rfcFabricante = ?");
+                condiciones.add("p.rfcFabricante = ?");
             } else {
                 // Filtrar por nombre, estado, municipio
                 condiciones.add(
-                        "f.nombrefabricante ILIKE ? OR f.estado ILIKE ? OR f.municipio ILIKE ? OR f.rfcFabricante ILIKE ?");
+                        "p.nombrefabricante ILIKE ? OR p.estado ILIKE ? OR p.municipio ILIKE ? OR p.rfcFabricante ILIKE ?");
             }
         }
 
@@ -222,8 +294,8 @@ public class FabricanteController {
                 String categoriaSql = """
                         SELECT c.idCategoria, c.nombreCategoria
                         FROM categoria c
-                        INNER JOIN fabricantecategoria fc ON c.idCategoria = fc.idCategoria
-                        WHERE fc.idFabricante = ?""";
+                        INNER JOIN fabricantecategoria pc ON c.idCategoria = pc.idCategoria
+                        WHERE pc.idFabricante = ?""";
 
                 try (PreparedStatement stmtCategorias = conn.prepareStatement(categoriaSql)) {
                     stmtCategorias.setInt(1, fabricante.getIdFabricante());
@@ -253,7 +325,23 @@ public class FabricanteController {
     }
 
     // Método para eliminar fabricante
-    public void eliminarFabricante(int idFabricante) {
+    public void eliminarFabricante(int idFabricante) throws SQLException, IOException {
+
+        if (idFabricante <= 0) {
+            throw new IllegalArgumentException("El ID del fabricante debe ser mayor a 0.");
+        }
+
+        // Verificar si el fabricante existe antes de eliminarlo
+        String sqlVerificar = "SELECT COUNT(*) FROM fabricante WHERE idFabricante = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sqlVerificar)) {
+            stmt.setInt(1, idFabricante);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next() && rs.getInt(1) == 0) {
+                throw new IllegalArgumentException("El fabricante con ID " + idFabricante + " no existe.");
+            }
+        }
+
         String sqlEliminarCategoria = "DELETE FROM fabricantecategoria WHERE idfabricante = ?";
         String sqlEliminarFabricante = "DELETE FROM fabricante WHERE idFabricante = ?";
 
@@ -331,8 +419,8 @@ public class FabricanteController {
                 String categoriaSql = """
                         SELECT c.idCategoria, c.nombreCategoria
                         FROM categoria c
-                        INNER JOIN fabricantecategoria fc ON c.idCategoria = fc.idCategoria
-                        WHERE fc.idFabricante = ?""";
+                        INNER JOIN fabricantecategoria pc ON c.idCategoria = pc.idCategoria
+                        WHERE pc.idFabricante = ?""";
 
                 try (PreparedStatement stmtCategorias = conn.prepareStatement(categoriaSql)) {
                     stmtCategorias.setInt(1, fabricante.getIdFabricante());
@@ -365,64 +453,112 @@ public class FabricanteController {
         return fabricantes;
     }
 
-    // Método para registrar fabricante desde archivo Excel
     public void registrarFabricanteDesdeExcel(File excelFile) {
+        StringBuilder errores = new StringBuilder(); // Variable para acumular los errores
+
         try (FileInputStream fis = new FileInputStream(excelFile);
                 Workbook workbook = new XSSFWorkbook(fis)) {
 
             Sheet sheet = workbook.getSheetAt(0);
+            if (sheet.getPhysicalNumberOfRows() <= 1) {
+                showAlert(Alert.AlertType.WARNING, "El archivo Excel está vacío o solo tiene encabezados.");
+                return;
+            }
+
             for (Row row : sheet) {
                 if (row.getRowNum() == 0)
-                    continue;
+                    continue; // Saltar encabezado
 
                 try {
-                    // Usar el método obtenerValorCelda para obtener los valores de las celdas
-                    String nombre = getStringCellValue(row.getCell(0));
-                    String cp = getStringCellValue(row.getCell(1));
-                    String noExt = getStringCellValue(row.getCell(2));
-                    String noInt = getStringCellValue(row.getCell(3));
-                    String rfc = getStringCellValue(row.getCell(4));
-                    String municipio = getStringCellValue(row.getCell(5));
-                    String estado = getStringCellValue(row.getCell(6));
-                    String calle = getStringCellValue(row.getCell(7));
-                    String colonia = getStringCellValue(row.getCell(8));
-                    String ciudad = getStringCellValue(row.getCell(9));
-                    String pais = getStringCellValue(row.getCell(10));
-                    String telefono = getStringCellValue(row.getCell(11));
-                    String correo = getStringCellValue(row.getCell(12));
-                    String curp = getStringCellValue(row.getCell(13));
-                    boolean esFisica = Boolean.parseBoolean(getStringCellValue(row.getCell(14)));
+                    // Obtener valores de celdas con validaciones
+                    String nombre = getStringCellValue(row.getCell(0)).trim();
+                    String cpStr = getStringCellValue(row.getCell(1)).trim();
+                    String noExtStr = getStringCellValue(row.getCell(2)).trim();
+                    String noIntStr = getStringCellValue(row.getCell(3)).trim();
+                    String rfc = getStringCellValue(row.getCell(4)).trim();
+                    String municipio = getStringCellValue(row.getCell(5)).trim();
+                    String estado = getStringCellValue(row.getCell(6)).trim();
+                    String calle = getStringCellValue(row.getCell(7)).trim();
+                    String colonia = getStringCellValue(row.getCell(8)).trim();
+                    String ciudad = getStringCellValue(row.getCell(9)).trim();
+                    String pais = getStringCellValue(row.getCell(10)).trim();
+                    String telefono = getStringCellValue(row.getCell(11)).trim();
+                    String correo = getStringCellValue(row.getCell(12)).trim();
+                    String curp = getStringCellValue(row.getCell(13)).trim();
+                    String esFisicaStr = getStringCellValue(row.getCell(14)).trim();
 
-                    Fabricante fabricante = new Fabricante(0, nombre, Integer.parseInt(cp), Integer.parseInt(noExt),
-                            Integer.parseInt(noInt), rfc, municipio, estado, calle, colonia, ciudad, pais, telefono,
-                            correo, curp, esFisica);
+                    // Validaciones previas
+                    if (nombre.isEmpty() || cpStr.isEmpty() || rfc.isEmpty() || telefono.isEmpty()
+                            || correo.isEmpty()) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Faltan datos obligatorios.\n");
+                    }
+                    if (!cpStr.matches("\\d{5}")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Código Postal inválido.\n");
+                    }
+                    if (!noExtStr.matches("\\d*")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Número exterior inválido.\n");
+                    }
+                    if (!noIntStr.matches("\\d*")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Número interior inválido.\n");
+                    }
+                    if (!rfc.matches("[A-Za-z0-9]{13}")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": RFC inválido.\n");
+                    }
+                    if (!telefono.matches("\\d{10}")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Teléfono inválido.\n");
+                    }
+                    if (!correo.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": Correo electrónico inválido.\n");
+                    }
+                    if (!curp.isEmpty() && !curp.matches("[A-Z0-9]{18}")) {
+                        errores.append("Fila ").append(row.getRowNum()).append(": CURP inválida.\n");
+                    }
 
+                    // Si hubo errores, continuar con la siguiente fila
+                    if (errores.length() > 0) {
+                        continue;
+                    }
+
+                    // Convertir valores numéricos
+                    int cp = Integer.parseInt(cpStr);
+                    int noExt = noExtStr.isEmpty() ? 0 : Integer.parseInt(noExtStr);
+                    int noInt = noIntStr.isEmpty() ? 0 : Integer.parseInt(noIntStr);
+
+                    // Validación de esFisica
+                    boolean esFisica = esFisicaStr.equalsIgnoreCase("true");
+
+                    Fabricante fabricante = new Fabricante(0, nombre, cp, noExt, noInt, rfc, municipio, estado, calle,
+                            colonia, ciudad, pais, telefono, correo, curp, esFisica);
+
+                    // Procesar categorías
                     List<Categoria> categorias = new ArrayList<>();
                     for (int i = 15; i < row.getLastCellNum(); i++) {
                         Cell cell = row.getCell(i, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
                         if (cell != null && cell.getCellType() == CellType.STRING) {
                             String categoriaNombre = getStringCellValue(cell).trim();
                             if (!categoriaNombre.isEmpty()) {
-                                // Directamente se agrega la categoría sin obtener el ID
                                 categorias.add(new Categoria(0, categoriaNombre, "Descripción de " + categoriaNombre));
-                                System.out.println("Categoría " + categoriaNombre + " registrada.");
                             }
                         }
                     }
 
-                    // Ahora solo llamas al método registrarFabricante una sola vez
+                    // Registrar fabricante con categorías
                     registrarFabricante(fabricante, categorias);
 
                 } catch (Exception e) {
-                    System.out.println("Error procesando fila " + row.getRowNum() + ": " + e.getMessage());
-                    e.printStackTrace();
+                    errores.append("Error procesando fila ").append(row.getRowNum()).append(": ").append(e.getMessage())
+                            .append("\n");
                 }
             }
-            System.out.println("Fabricantes registrados desde el archivo Excel.");
+
+            if (errores.length() > 0) {
+                showAlert(Alert.AlertType.ERROR, errores.toString());
+            } else {
+                showAlert(Alert.AlertType.INFORMATION, "Fabricantes registrados desde Excel.");
+            }
 
         } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error al leer el archivo Excel.");
+            showAlert(Alert.AlertType.ERROR, "Error al leer el archivo Excel: " + e.getMessage());
         }
     }
 
@@ -440,6 +576,12 @@ public class FabricanteController {
             default:
                 return "";
         }
+    }
+
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type);
+        alert.setContentText(message);
+        alert.show();
     }
 
 }

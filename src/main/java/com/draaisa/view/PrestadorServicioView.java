@@ -172,7 +172,10 @@ public class PrestadorServicioView extends Application {
         // Validación de formulario antes de registrar
         btnRegistrar.setOnAction(e -> {
             if (txtNombre.getText().isEmpty() || txtRfc.getText().isEmpty() || txtTelefono.getText().isEmpty()
-                    || txtCp.getText().isEmpty() || txtCorreo.getText().isEmpty()) {
+                    || txtCp.getText().isEmpty() || txtCorreo.getText().isEmpty() || txtCurp.getText().isEmpty()
+                    || txtCalle.getText().isEmpty() || txtColonia.getText().isEmpty() || txtCiudad.getText().isEmpty()
+                    || txtMunicipio.getText().isEmpty() || txtEstado.getText().isEmpty() || txtPais.getText().isEmpty()
+                    || listViewServicios.getItems().isEmpty() || listViewRutas.getItems().isEmpty()) {
                 showAlert("Error", "Los campos obligatorios no deben estar vacíos.");
             } else if (!txtTelefono.getText().matches("\\d+")) {
                 showAlert("Error", "El teléfono debe ser numérico.");
@@ -180,7 +183,12 @@ public class PrestadorServicioView extends Application {
                 showAlert("Error", "El Código Postal debe ser numérico.");
             } else if (!txtCorreo.getText().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
                 showAlert("Error", "El correo debe ser válido.");
-            } else {
+            } else if (!txtRfc.getText().matches("^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$")) {
+                showAlert("Error", "El RFC debe tener entre 12 y 13 caracteres.");
+            } else if (!txtCurp.getText().matches("[A-Z]{4}[0-9]{6}[A-Z]{6,7}[0-9]{1,2}")) {
+                showAlert("Error", "El CURP debe tener 18 caracteres y seguir el formato oficial.");
+            }
+            else {
                 registrarPrestador(); // Si las validaciones pasan
             }
         });
@@ -434,6 +442,38 @@ public class PrestadorServicioView extends Application {
 
         Button btnGuardar = new Button("Guardar Cambios");
         btnGuardar.setOnAction(e -> {
+
+            // Validar que los campos no estén vacíos o nulos
+            if ((nombreField.getText() == null || nombreField.getText().trim().isEmpty()) ||
+                    (rfcField.getText() == null || rfcField.getText().trim().isEmpty()) ||
+                    (telefonoField.getText() == null || telefonoField.getText().trim().isEmpty()) ||
+                    (cpField.getText() == null || cpField.getText().trim().isEmpty()) ||
+                    (calleField.getText() == null || calleField.getText().trim().isEmpty()) ||
+                    (municipioField.getText() == null || municipioField.getText().trim().isEmpty()) ||
+                    (estadoField.getText() == null || estadoField.getText().trim().isEmpty()) ||
+                    (paisField.getText() == null || paisField.getText().trim().isEmpty()) ||
+                    (correoField.getText() == null || correoField.getText().trim().isEmpty())) {
+
+                mostrarMensaje("Todos los campos obligatorios deben estar llenos.");
+                return;
+            }
+            if (!rfcField.getText().matches("^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$")) {
+                mostrarMensaje("RFC inválido. Debe tener entre 12 y 13 caracteres.");
+                return;
+            }
+            if (!curpField.getText().matches("^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[0-9A-Z]{2}$")) {
+                mostrarMensaje("CURP inválido. Debe tener 18 caracteres y seguir el formato oficial.");
+                return;
+            }
+            if (!telefonoField.getText().matches("^[0-9]{10}$")) {
+                mostrarMensaje("Teléfono inválido. Debe contener 10 dígitos.");
+                return;
+            }
+            if (!correoField.getText().matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$")) {
+                mostrarMensaje("Correo inválido. Debe seguir el formato ejemplo@dominio.com.");
+                return;
+            }
+
             prestadorSeleccionado.setNombrePrestador(nombreField.getText());
             prestadorSeleccionado.setRfcPrestador(rfcField.getText());
             prestadorSeleccionado.setTelefonoPrestador(telefonoField.getText());
@@ -528,7 +568,6 @@ public class PrestadorServicioView extends Application {
         File archivo = fileChooser.showOpenDialog(null);
         if (archivo != null) {
             controller.importarPrestadoresDesdeExcel(archivo);
-            mostrarMensaje("Importación desde Excel completada.");
             actualizarTabla(""); // Actualizamos la tabla
         }
     }

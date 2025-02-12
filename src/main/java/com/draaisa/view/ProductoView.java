@@ -221,9 +221,39 @@ public class ProductoView extends Application {
         registrarBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;"); // Verde
         registrarBtn.setOnAction(e -> {
             try {
-                Producto nuevoProducto = new Producto(0, nombreField.getText(), fichaField.getText(),
-                        alternoField.getText(), Integer.parseInt(existenciaField.getText()));
+                // Validar campos de texto
+                if (nombreField.getText().isEmpty() || fichaField.getText().isEmpty()
+                        || alternoField.getText().isEmpty() || existenciaField.getText().isEmpty()) {
+                    showAlert("Error", "Todos los campos son obligatorios.", Alert.AlertType.ERROR);
+                    return; // Salir si algún campo está vacío
+                }
 
+                // Validar existencia (debe ser un número entero)
+                int existencia;
+                try {
+                    existencia = Integer.parseInt(existenciaField.getText());
+                } catch (NumberFormatException ex) {
+                    showAlert("Error", "La existencia debe ser un número entero.", Alert.AlertType.ERROR);
+                    return;
+                }
+
+                // Validar que al menos una categoría sea seleccionada
+                if (categoriaList.stream().allMatch(c -> c.getValue() == null)) {
+                    showAlert("Error", "Debe seleccionar al menos una categoría.", Alert.AlertType.ERROR);
+                    return;
+                }
+
+                // Validar que se haya seleccionado una moneda
+                if (monedaCombo.getValue() == null) {
+                    showAlert("Error", "Debe seleccionar una moneda.", Alert.AlertType.ERROR);
+                    return;
+                }
+
+                // Crear el producto con los datos validados
+                Producto nuevoProducto = new Producto(0, nombreField.getText(), fichaField.getText(),
+                        alternoField.getText(), existencia);
+
+                // Recoger las listas seleccionadas
                 List<Categoria> categoriasSeleccionadas = categoriaList.stream().map(ComboBox::getValue)
                         .collect(Collectors.toList());
                 List<Empresa> empresasSeleccionadas = empresaList.stream().map(ComboBox::getValue)
@@ -252,14 +282,17 @@ public class ProductoView extends Application {
 
                 String moneda = monedaCombo.getValue();
 
+                // Registrar el producto en el controlador
                 productoController.registrarProducto(nuevoProducto, categoriasSeleccionadas, empresasSeleccionadas,
                         proveedoresSeleccionados, fabricantesSeleccionados, clientesSeleccionados,
                         serviciosSeleccionados, preciosEmpresas, preciosProveedores, preciosFabricantes,
                         preciosClientes, moneda);
+
+                // Mensaje de éxito
                 showAlert("Éxito", "Producto registrado correctamente", Alert.AlertType.INFORMATION);
 
+                // Limpiar el formulario y crear uno nuevo
                 layout.getChildren().clear();
-
                 VBox nuevoFormulario = crearFormularioRegistro();
                 nuevoFormulario.setPadding(new Insets(-21));
                 layout.getChildren().add(nuevoFormulario);
@@ -269,6 +302,7 @@ public class ProductoView extends Application {
                 System.out.println(ex.getMessage());
             }
         });
+
         Button cargarExcelBtn = new Button("Cargar desde Excel");
         cargarExcelBtn.setId("cargarExcelBtn");
         cargarExcelBtn.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white;"); // Naranja
@@ -405,39 +439,67 @@ public class ProductoView extends Application {
         TextArea infoRelacionada = new TextArea(obtenerInformacionRelacionada(producto));
         infoRelacionada.setEditable(false);
 
+        // Validación de datos antes de actualizar
         Button btnActualizar = new Button("Actualizar");
         btnActualizar.setOnAction(e -> {
-            producto.setNombreProducto(nombreField.getText());
-            producto.setFichaProducto(fichaField.getText());
-            producto.setAlternoProducto(alternoField.getText());
-            producto.setExistenciaProducto(Integer.parseInt(existenciaField.getText()));
+            String nombre = nombreField.getText();
+            String ficha = fichaField.getText();
+            String alterno = alternoField.getText();
+            String existenciaTexto = existenciaField.getText();
+
+            // Validación de campos vacíos
+            if (nombre.isEmpty() || ficha.isEmpty() || alterno.isEmpty() || existenciaTexto.isEmpty()) {
+                showAlert("Error", "Todos los campos deben estar completos", Alert.AlertType.ERROR);
+                return;
+            }
+
+            // Validación de existencia (debe ser un número entero positivo)
+            int existencia;
+            try {
+                existencia = Integer.parseInt(existenciaTexto);
+                if (existencia < 0) {
+                    showAlert("Error", "La existencia debe ser un número entero positivo", Alert.AlertType.ERROR);
+                    return;
+                }
+            } catch (NumberFormatException ex) {
+                showAlert("Error", "La existencia debe ser un número válido", Alert.AlertType.ERROR);
+                return;
+            }
+
+            // Actualizar producto
+            producto.setNombreProducto(nombre);
+            producto.setFichaProducto(ficha);
+            producto.setAlternoProducto(alterno);
+            producto.setExistenciaProducto(existencia);
 
             try {
                 productoController.actualizarProducto(producto);
-            } catch (IOException e1) {
-                e1.printStackTrace();
+                cargarProductos(); // Cargar la lista actualizada
+                ventanaEdicion.close();
+            } catch (IOException | SQLException ex) {
+                showAlert("Error", "No se pudo actualizar el producto", Alert.AlertType.ERROR);
+                ex.printStackTrace();
             }
-            try {
-                cargarProductos();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
-            ventanaEdicion.close();
         });
 
+        // Confirmación antes de eliminar
         Button btnEliminar = new Button("Eliminar");
         btnEliminar.setOnAction(e -> {
-            try {
-                productoController.eliminarProducto(producto.getIdProducto());
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-            try {
-                cargarProductos();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
-            ventanaEdicion.close();
+            Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION,
+                    "¿Estás seguro de que quieres eliminar este producto?");
+            confirmacion.setTitle("Confirmar eliminación");
+            confirmacion.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.OK) {
+                    try {
+                        productoController.eliminarProducto(producto.getIdProducto());
+                        cargarProductos(); // Actualizar la lista
+                        ventanaEdicion.close();
+                    } catch (IOException | SQLException ex) {
+                        showAlert("Error", "No se pudo eliminar el producto", Alert.AlertType.ERROR);
+                        ex.printStackTrace();
+                    }
+                }
+            });
         });
 
         HBox botones = new HBox(10, btnActualizar, btnEliminar);

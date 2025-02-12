@@ -44,15 +44,26 @@ public class UsuarioController {
     }
 
     // Método para registrar un nuevo usuario
-    public static boolean registrarUsuario(Usuario usuario) {
+    public static boolean registrarUsuario(Usuario usuario, StringBuilder mensaje) {
+        if (usuario.getNombreUsuario().isEmpty() || usuario.getContrasenaUsuario().length() < 6) {
+            mensaje.append("Nombre de usuario o contraseña inválidos.\n");
+            return false;
+        }
+
+        // Verificar si el nombre de usuario ya existe
+        if (nombreUsuarioExiste(usuario.getNombreUsuario())) {
+            mensaje.append("El nombre de usuario ya existe.\n");
+            return false;
+        }
+
         String query = "INSERT INTO usuario (nombreusuario, contrasenausuario, permiso) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-    
+                PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+
             stmt.setString(1, usuario.getNombreUsuario());
             stmt.setString(2, usuario.getContrasenaUsuario());
             stmt.setBoolean(3, usuario.isPermiso());
-    
+
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
@@ -60,14 +71,28 @@ public class UsuarioController {
                         usuario.setIdUsuario(generatedKeys.getInt(1)); // Asigna el nuevo ID al usuario
                     }
                 }
+                mensaje.append("Usuario registrado exitosamente.\n");
                 return true;
             }
+        } catch (SQLException | IOException e) {
+            mensaje.append("Error al registrar usuario: " + e.getMessage() + "\n");
+        }
+        return false;
+    }
+
+    // Método para verificar si el nombre de usuario ya existe
+    private static boolean nombreUsuarioExiste(String nombreUsuario) {
+        String query = "SELECT 1 FROM usuario WHERE nombreusuario = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, nombreUsuario);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // Si existe, retorna true
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
         return false;
     }
-    
 
     // Método para eliminar un usuario
     public static boolean eliminarUsuario(int idUsuario) {

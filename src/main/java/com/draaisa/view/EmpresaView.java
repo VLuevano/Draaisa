@@ -449,24 +449,24 @@ public class EmpresaView extends Application {
         menuPrincipalScreen.mostrarMenu(); // Mostrar el menú principal
     }
 
-    public void mostrarVentanaEdicionEmpresa(Empresa empresaseleccionado) {
+    public void mostrarVentanaEdicionEmpresa(Empresa empresaSeleccionado) {
         // Crear los campos de texto para editar
-        TextField nombreField = new TextField(empresaseleccionado.getNombreEmpresa());
-        TextField rfcField = new TextField(empresaseleccionado.getRfcEmpresa());
-        TextField telefonoField = new TextField(empresaseleccionado.getTelefonoEmpresa());
-        TextField cpField = new TextField(String.valueOf(empresaseleccionado.getCpEmpresa()));
-        TextField noExtField = new TextField(String.valueOf(empresaseleccionado.getNoExtEmpresa()));
-        TextField noIntField = new TextField(String.valueOf(empresaseleccionado.getNoIntEmpresa()));
-        TextField calleField = new TextField(empresaseleccionado.getCalle());
-        TextField coloniaField = new TextField(empresaseleccionado.getColonia());
-        TextField ciudadField = new TextField(empresaseleccionado.getCiudad());
-        TextField municipioField = new TextField(empresaseleccionado.getMunicipio());
-        TextField estadoField = new TextField(empresaseleccionado.getEstado());
-        TextField paisField = new TextField(empresaseleccionado.getPais());
-        TextField correoField = new TextField(empresaseleccionado.getCorreoEmpresa());
-        TextField curpField = new TextField(empresaseleccionado.getCurp());
+        TextField nombreField = new TextField(empresaSeleccionado.getNombreEmpresa());
+        TextField rfcField = new TextField(empresaSeleccionado.getRfcEmpresa());
+        TextField telefonoField = new TextField(empresaSeleccionado.getTelefonoEmpresa());
+        TextField cpField = new TextField(String.valueOf(empresaSeleccionado.getCpEmpresa()));
+        TextField noExtField = new TextField(String.valueOf(empresaSeleccionado.getNoExtEmpresa()));
+        TextField noIntField = new TextField(String.valueOf(empresaSeleccionado.getNoIntEmpresa()));
+        TextField calleField = new TextField(empresaSeleccionado.getCalle());
+        TextField coloniaField = new TextField(empresaSeleccionado.getColonia());
+        TextField ciudadField = new TextField(empresaSeleccionado.getCiudad());
+        TextField municipioField = new TextField(empresaSeleccionado.getMunicipio());
+        TextField estadoField = new TextField(empresaSeleccionado.getEstado());
+        TextField paisField = new TextField(empresaSeleccionado.getPais());
+        TextField correoField = new TextField(empresaSeleccionado.getCorreoEmpresa());
+        TextField curpField = new TextField(empresaSeleccionado.getCurp());
         CheckBox personaFisicaCheck = new CheckBox();
-        personaFisicaCheck.setSelected(empresaseleccionado.isEsPersonaFisica());
+        personaFisicaCheck.setSelected(empresaSeleccionado.isEsPersonaFisica());
 
         // Crear botones de acción
         Button guardarButton = new Button("Guardar cambios");
@@ -481,7 +481,7 @@ public class EmpresaView extends Application {
 
             // Crear un nuevo empresa con los datos editados
             Empresa empresaEditado = new Empresa(
-                    empresaseleccionado.getIdEmpresa(), // ID no cambia
+                    empresaSeleccionado.getIdEmpresa(), // ID no cambia
                     nombreField.getText(),
                     Integer.parseInt(cpField.getText()),
                     Integer.parseInt(noExtField.getText()),
@@ -515,7 +515,11 @@ public class EmpresaView extends Application {
             alert.showAndWait().ifPresent(response -> {
                 if (response == ButtonType.OK) {
                     // Eliminar empresa en la base de datos
-                    controller.eliminarEmpresa(empresaseleccionado.getIdEmpresa());
+                    try {
+                        controller.eliminarEmpresa(empresaSeleccionado.getIdEmpresa());
+                    } catch (SQLException | IOException e1) {
+                        e1.printStackTrace();
+                    }
 
                     // Actualizar la tabla
                     actualizarTablaEmpresas(tableView);
@@ -616,10 +620,10 @@ public class EmpresaView extends Application {
 
                 controller.registrarEmpresaDesdeExcel(file);
 
-                showAlert(Alert.AlertType.INFORMATION, "Empresas registrados desde Excel.");
+                //showAlert(Alert.AlertType.INFORMATION, "Empresas registrados desde Excel.");
             } catch (Exception e) {
                 e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "Error al procesar el archivo Excel: " + e.getMessage());
+                //showAlert(Alert.AlertType.ERROR, "Error al procesar el archivo Excel: " + e.getMessage());
             }
         }
     }

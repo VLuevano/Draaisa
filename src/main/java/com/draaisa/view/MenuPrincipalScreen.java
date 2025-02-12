@@ -105,8 +105,8 @@ public class MenuPrincipalScreen {
         centro.setAlignment(Pos.CENTER);
 
         ImageView imgLogo = new ImageView(
-                new Image(getClass().getResource("/images/draaisa_logo.jpg").toExternalForm()));
-        imgLogo.setFitWidth(150);
+                new Image(getClass().getResource("/images/PriceStockerLogo.png").toExternalForm()));
+        imgLogo.setFitWidth(400);
         imgLogo.setPreserveRatio(true);
 
         Label lblBienvenida = new Label("Bienvenido, " + usuarioActual);
@@ -117,7 +117,7 @@ public class MenuPrincipalScreen {
         root.setCenter(centro);
 
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Menú Principal - Draaisa");
+        primaryStage.setTitle("Menú Principal - PriceStocker");
         primaryStage.setResizable(false);
         primaryStage.show();
     }

@@ -515,7 +515,11 @@ public class FabricanteView extends Application {
             alert.showAndWait().ifPresent(response -> {
                 if (response == ButtonType.OK) {
                     // Eliminar fabricante en la base de datos
-                    controller.eliminarFabricante(fabricanteSeleccionado.getIdFabricante());
+                    try {
+                        controller.eliminarFabricante(fabricanteSeleccionado.getIdFabricante());
+                    } catch (SQLException | IOException e1) {
+                        e1.printStackTrace();
+                    }
 
                     // Actualizar la tabla
                     actualizarTablaFabricantes(tableView);
@@ -616,10 +620,10 @@ public class FabricanteView extends Application {
 
                 controller.registrarFabricanteDesdeExcel(file);
 
-                showAlert(Alert.AlertType.INFORMATION, "Fabricantes registrados desde Excel.");
             } catch (Exception e) {
                 e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "Error al procesar el archivo Excel: " + e.getMessage());
+                // showAlert(Alert.AlertType.ERROR, "Error al procesar el archivo Excel: " +
+                // e.getMessage());
             }
         }
     }

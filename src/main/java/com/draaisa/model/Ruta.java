@@ -12,7 +12,6 @@ public class Ruta {
     }
 
     public Ruta() {
-        // TODO Auto-generated constructor stub
     }
 
     // Getters and Setters

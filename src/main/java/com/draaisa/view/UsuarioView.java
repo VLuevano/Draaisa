@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -27,36 +28,48 @@ public class UsuarioView extends Application {
 
         MenuBar menuBar = new MenuBar();
         Menu menu = new Menu("Opciones");
-        MenuItem registroItem = new MenuItem("Registrar Usuario");
-        MenuItem consultarItem = new MenuItem("Consultar Usuarios");
         MenuItem salirItem = new MenuItem("Salir");
 
-        menu.getItems().addAll(registroItem, consultarItem, salirItem);
+        menu.getItems().addAll(salirItem);
         menuBar.getMenus().add(menu);
 
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(20));
 
-        registroItem.setOnAction(e -> showRegistroForm(vbox));
-        consultarItem.setOnAction(e -> showConsultarForm(vbox));
         salirItem.setOnAction(e -> mostrarMenuPrincipal(primaryStage));
+
+        // Crear formulario y tabla en la misma ventana
+        showFormularioYTabla(vbox);
 
         BorderPane root = new BorderPane();
         root.setTop(menuBar);
         root.setCenter(vbox);
 
-        showConsultarForm(vbox);
-
         primaryStage.setScene(new Scene(root, 900, 600));
         primaryStage.show();
     }
 
-    private void showRegistroForm(VBox vbox) {
-        vbox.getChildren().setAll(crearFormularioRegistro());
-    }
+    private void showFormularioYTabla(VBox vbox) {
+        HBox hbox = new HBox(20); // Usamos un HBox para organizar la tabla a la izquierda y el formulario a la derecha
+        hbox.setPadding(new Insets(20));
 
-    private void showConsultarForm(VBox vbox) {
-        vbox.getChildren().setAll(crearTablaUsuarios());
+        // Sección de tabla de usuarios
+        VBox tablaBox = new VBox(10);
+        Label lblTabla = new Label("Usuarios Registrados");
+        lblTabla.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        tablaBox.getChildren().add(lblTabla);
+        tablaBox.getChildren().add(crearTablaUsuarios());
+
+        // Sección de formulario de registro
+        VBox formularioBox = new VBox(10);
+        Label lblFormulario = new Label("Formulario de Registro de Usuario");
+        lblFormulario.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        formularioBox.getChildren().add(lblFormulario);
+        formularioBox.getChildren().add(crearFormularioRegistro());
+
+        hbox.getChildren().addAll(tablaBox, formularioBox);
+
+        vbox.getChildren().add(hbox);
     }
 
     private GridPane crearFormularioRegistro() {
@@ -74,12 +87,19 @@ public class UsuarioView extends Application {
         Label lblMensaje = new Label();
 
         btnRegistrar.setOnAction(e -> {
-            Usuario usuario = new Usuario(0, txtUsuario.getText(), txtContrasena.getText(), chkPermiso.isSelected());
-            if (UsuarioController.registrarUsuario(usuario)) {
-                lblMensaje.setText("Usuario registrado");
-                actualizarTablaUsuarios();
+            String nombreUsuario = txtUsuario.getText();
+            String contrasenaUsuario = txtContrasena.getText();
+            StringBuilder mensaje = new StringBuilder();
+
+            // Creación de usuario
+            Usuario usuario = new Usuario(0, nombreUsuario, contrasenaUsuario, chkPermiso.isSelected());
+
+            // Llamar al método del controlador para registrar el usuario
+            if (UsuarioController.registrarUsuario(usuario, mensaje)) {
+                mostrarAlerta("Éxito", mensaje.toString());
+                actualizarTablaUsuarios(); // Si el registro fue exitoso
             } else {
-                lblMensaje.setText("Error en el registro");
+                mostrarAlerta("Error", mensaje.toString()); // Mostrar el error
             }
         });
 
@@ -95,9 +115,8 @@ public class UsuarioView extends Application {
     }
 
     @SuppressWarnings("unchecked")
-    private GridPane crearTablaUsuarios() {
-        GridPane grid = new GridPane();
-        grid.setPadding(new Insets(15));
+    private VBox crearTablaUsuarios() {
+        VBox vbox = new VBox();
 
         tablaUsuarios = new TableView<>();
         TableColumn<Usuario, Integer> colId = new TableColumn<>("ID");
@@ -111,14 +130,20 @@ public class UsuarioView extends Application {
         tablaUsuarios.getColumns().addAll(colId, colNombre, colPermiso);
         actualizarTablaUsuarios();
 
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(tablaUsuarios);
+        scrollPane.setFitToWidth(true); // Ajusta el tamaño de la tabla al ancho del contenedor
+        scrollPane.setFitToHeight(true); // Ajusta el tamaño de la tabla al alto del contenedor
+
+        vbox.getChildren().add(scrollPane);
+
         tablaUsuarios.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2 && !tablaUsuarios.getSelectionModel().isEmpty()) {
                 mostrarOpcionesUsuario(tablaUsuarios.getSelectionModel().getSelectedItem());
             }
         });
 
-        grid.add(tablaUsuarios, 0, 0);
-        return grid;
+        return vbox;
     }
 
     private void mostrarOpcionesUsuario(Usuario usuario) {
@@ -137,11 +162,17 @@ public class UsuarioView extends Application {
         Button btnEliminar = new Button("Eliminar Usuario");
 
         btnCambiar.setOnAction(e -> {
-            if (UsuarioController.cambiarContrasena(usuario.getIdUsuario(), txtNuevaContrasena.getText())) {
-                mostrarAlerta("Éxito", "Contraseña actualizada");
+            String nuevaContrasena = txtNuevaContrasena.getText();
+            if (nuevaContrasena.length() < 6) {
+                mostrarAlerta("Error", "La contraseña debe tener al menos 6 caracteres.");
+                return;
+            }
+
+            if (UsuarioController.cambiarContrasena(usuario.getIdUsuario(), nuevaContrasena)) {
+                mostrarAlerta("Éxito", "Contraseña actualizada correctamente.");
                 actualizarTablaUsuarios();
             } else {
-                mostrarAlerta("Error", "No se pudo actualizar la contraseña");
+                mostrarAlerta("Error", "No se pudo actualizar la contraseña.");
             }
         });
 

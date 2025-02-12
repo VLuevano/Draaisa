@@ -11,6 +11,8 @@ import com.draaisa.model.PrestadorServicio;
 import com.draaisa.model.Cliente;
 import com.draaisa.model.Servicio;
 
+import javafx.scene.control.Alert;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -100,15 +102,15 @@ public class ProductoController {
 
     private void asociarProductoConCategoria(int idProducto, int idCategoria) throws SQLException, IOException {
         String checkSql = "SELECT 1 FROM productocategoria WHERE idProducto = ? AND idCategoria = ?";
-        
+
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-            
+
             checkStmt.setInt(1, idProducto);
             checkStmt.setInt(2, idCategoria);
-            
+
             ResultSet resultSet = checkStmt.executeQuery();
-            
+
             if (!resultSet.next()) {
                 // Si no existe la relación, insertar el nuevo registro
                 String insertSql = "INSERT INTO productocategoria (idProducto, idCategoria) VALUES (?, ?)";
@@ -129,175 +131,174 @@ public class ProductoController {
             }
         }
     }
-    
 
     private void asociarProductoConEmpresa(int idProducto, int idEmpresa, double precio, String moneda)
-        throws SQLException, IOException {
-    String checkSql = "SELECT 1 FROM productoempresa WHERE idProducto = ? AND idEmpresa = ?";
-    
-    try (Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-        
-        checkStmt.setInt(1, idProducto);
-        checkStmt.setInt(2, idEmpresa);
-        
-        ResultSet resultSet = checkStmt.executeQuery();
-        
-        if (!resultSet.next()) {
-            // Si no existe la relación, insertar el nuevo registro
-            String insertSql = "INSERT INTO productoempresa (idProducto, idEmpresa, costomercado, monedamercado) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-                insertStmt.setInt(1, idProducto);
-                insertStmt.setInt(2, idEmpresa);
-                insertStmt.setDouble(3, precio);
-                insertStmt.setString(4, moneda);
-                insertStmt.executeUpdate();
-            }
-        } else {
-            // Si ya existe la relación, actualizarla
-            String updateSql = "UPDATE productoempresa SET costomercado = ?, monedamercado = ? WHERE idProducto = ? AND idEmpresa = ?";
-            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-                updateStmt.setDouble(1, precio);
-                updateStmt.setString(2, moneda);
-                updateStmt.setInt(3, idProducto);
-                updateStmt.setInt(4, idEmpresa);
-                updateStmt.executeUpdate();
-            }
-        }
-    }
-}
+            throws SQLException, IOException {
+        String checkSql = "SELECT 1 FROM productoempresa WHERE idProducto = ? AND idEmpresa = ?";
 
-private void asociarProductoConProveedor(int idProducto, int idProveedor, double precio, String moneda)
-        throws SQLException, IOException {
-    String checkSql = "SELECT 1 FROM productoproveedor WHERE idProducto = ? AND idProveedor = ?";
-    
-    try (Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-        
-        checkStmt.setInt(1, idProducto);
-        checkStmt.setInt(2, idProveedor);
-        
-        ResultSet resultSet = checkStmt.executeQuery();
-        
-        if (!resultSet.next()) {
-            // Si no existe la relación, insertar el nuevo registro
-            String insertSql = "INSERT INTO productoproveedor (idProducto, idProveedor, costocompraprov, monedacompraprov) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-                insertStmt.setInt(1, idProducto);
-                insertStmt.setInt(2, idProveedor);
-                insertStmt.setDouble(3, precio);
-                insertStmt.setString(4, moneda);
-                insertStmt.executeUpdate();
-            }
-        } else {
-            // Si ya existe la relación, actualizarla
-            String updateSql = "UPDATE productoproveedor SET costocompraprov = ?, monedacompraprov = ? WHERE idProducto = ? AND idProveedor = ?";
-            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-                updateStmt.setDouble(1, precio);
-                updateStmt.setString(2, moneda);
-                updateStmt.setInt(3, idProducto);
-                updateStmt.setInt(4, idProveedor);
-                updateStmt.executeUpdate();
-            }
-        }
-    }
-}
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
 
-private void asociarProductoConFabricante(int idProducto, int idFabricante, double precio, String moneda)
-        throws SQLException, IOException {
-    String checkSql = "SELECT 1 FROM productofabricante WHERE idProducto = ? AND idFabricante = ?";
-    
-    try (Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-        
-        checkStmt.setInt(1, idProducto);
-        checkStmt.setInt(2, idFabricante);
-        
-        ResultSet resultSet = checkStmt.executeQuery();
-        
-        if (!resultSet.next()) {
-            // Si no existe la relación, insertar el nuevo registro
-            String insertSql = "INSERT INTO productofabricante (idProducto, idFabricante, costocomprafab, monedacomprafab) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-                insertStmt.setInt(1, idProducto);
-                insertStmt.setInt(2, idFabricante);
-                insertStmt.setDouble(3, precio);
-                insertStmt.setString(4, moneda);
-                insertStmt.executeUpdate();
-            }
-        } else {
-            // Si ya existe la relación, actualizarla
-            String updateSql = "UPDATE productofabricante SET costocomprafab = ?, monedacomprafab = ? WHERE idProducto = ? AND idFabricante = ?";
-            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-                updateStmt.setDouble(1, precio);
-                updateStmt.setString(2, moneda);
-                updateStmt.setInt(3, idProducto);
-                updateStmt.setInt(4, idFabricante);
-                updateStmt.executeUpdate();
-            }
-        }
-    }
-}
+            checkStmt.setInt(1, idProducto);
+            checkStmt.setInt(2, idEmpresa);
 
-private void asociarProductoConCliente(int idProducto, int idCliente, double precio, String moneda)
-        throws SQLException, IOException {
-    String checkSql = "SELECT 1 FROM productocliente WHERE idProducto = ? AND idCliente = ?";
-    
-    try (Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-        
-        checkStmt.setInt(1, idProducto);
-        checkStmt.setInt(2, idCliente);
-        
-        ResultSet resultSet = checkStmt.executeQuery();
-        
-        if (!resultSet.next()) {
-            // Si no existe la relación, insertar el nuevo registro
-            String insertSql = "INSERT INTO productocliente (idProducto, idCliente, costoventa, monedaventa) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-                insertStmt.setInt(1, idProducto);
-                insertStmt.setInt(2, idCliente);
-                insertStmt.setDouble(3, precio);
-                insertStmt.setString(4, moneda);
-                insertStmt.executeUpdate();
-            }
-        } else {
-            // Si ya existe la relación, actualizarla
-            String updateSql = "UPDATE productocliente SET costoventa = ?, monedaventa = ? WHERE idProducto = ? AND idCliente = ?";
-            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-                updateStmt.setDouble(1, precio);
-                updateStmt.setString(2, moneda);
-                updateStmt.setInt(3, idProducto);
-                updateStmt.setInt(4, idCliente);
-                updateStmt.executeUpdate();
-            }
-        }
-    }
-}
+            ResultSet resultSet = checkStmt.executeQuery();
 
-private void asociarProductoConServicio(int idProducto, int idServicio, String moneda)
-        throws SQLException, IOException {
-    String checkSql = "SELECT 1 FROM productoservicio WHERE idProducto = ? AND idServicio = ?";
-    
-    try (Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-        
-        checkStmt.setInt(1, idProducto);
-        checkStmt.setInt(2, idServicio);
-        
-        ResultSet resultSet = checkStmt.executeQuery();
-        
-        if (!resultSet.next()) {
-            // Si no existe la relación, insertar el nuevo registro
-            String insertSql = "INSERT INTO productoservicio (idProducto, idServicio) VALUES (?, ?)";
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-                insertStmt.setInt(1, idProducto);
-                insertStmt.setInt(2, idServicio);
-                insertStmt.executeUpdate();
+            if (!resultSet.next()) {
+                // Si no existe la relación, insertar el nuevo registro
+                String insertSql = "INSERT INTO productoempresa (idProducto, idEmpresa, costomercado, monedamercado) VALUES (?, ?, ?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    insertStmt.setInt(1, idProducto);
+                    insertStmt.setInt(2, idEmpresa);
+                    insertStmt.setDouble(3, precio);
+                    insertStmt.setString(4, moneda);
+                    insertStmt.executeUpdate();
+                }
+            } else {
+                // Si ya existe la relación, actualizarla
+                String updateSql = "UPDATE productoempresa SET costomercado = ?, monedamercado = ? WHERE idProducto = ? AND idEmpresa = ?";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                    updateStmt.setDouble(1, precio);
+                    updateStmt.setString(2, moneda);
+                    updateStmt.setInt(3, idProducto);
+                    updateStmt.setInt(4, idEmpresa);
+                    updateStmt.executeUpdate();
+                }
             }
         }
     }
-}
+
+    private void asociarProductoConProveedor(int idProducto, int idProveedor, double precio, String moneda)
+            throws SQLException, IOException {
+        String checkSql = "SELECT 1 FROM productoproveedor WHERE idProducto = ? AND idProveedor = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+
+            checkStmt.setInt(1, idProducto);
+            checkStmt.setInt(2, idProveedor);
+
+            ResultSet resultSet = checkStmt.executeQuery();
+
+            if (!resultSet.next()) {
+                // Si no existe la relación, insertar el nuevo registro
+                String insertSql = "INSERT INTO productoproveedor (idProducto, idProveedor, costocompraprov, monedacompraprov) VALUES (?, ?, ?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    insertStmt.setInt(1, idProducto);
+                    insertStmt.setInt(2, idProveedor);
+                    insertStmt.setDouble(3, precio);
+                    insertStmt.setString(4, moneda);
+                    insertStmt.executeUpdate();
+                }
+            } else {
+                // Si ya existe la relación, actualizarla
+                String updateSql = "UPDATE productoproveedor SET costocompraprov = ?, monedacompraprov = ? WHERE idProducto = ? AND idProveedor = ?";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                    updateStmt.setDouble(1, precio);
+                    updateStmt.setString(2, moneda);
+                    updateStmt.setInt(3, idProducto);
+                    updateStmt.setInt(4, idProveedor);
+                    updateStmt.executeUpdate();
+                }
+            }
+        }
+    }
+
+    private void asociarProductoConFabricante(int idProducto, int idFabricante, double precio, String moneda)
+            throws SQLException, IOException {
+        String checkSql = "SELECT 1 FROM productofabricante WHERE idProducto = ? AND idFabricante = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+
+            checkStmt.setInt(1, idProducto);
+            checkStmt.setInt(2, idFabricante);
+
+            ResultSet resultSet = checkStmt.executeQuery();
+
+            if (!resultSet.next()) {
+                // Si no existe la relación, insertar el nuevo registro
+                String insertSql = "INSERT INTO productofabricante (idProducto, idFabricante, costocomprafab, monedacomprafab) VALUES (?, ?, ?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    insertStmt.setInt(1, idProducto);
+                    insertStmt.setInt(2, idFabricante);
+                    insertStmt.setDouble(3, precio);
+                    insertStmt.setString(4, moneda);
+                    insertStmt.executeUpdate();
+                }
+            } else {
+                // Si ya existe la relación, actualizarla
+                String updateSql = "UPDATE productofabricante SET costocomprafab = ?, monedacomprafab = ? WHERE idProducto = ? AND idFabricante = ?";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                    updateStmt.setDouble(1, precio);
+                    updateStmt.setString(2, moneda);
+                    updateStmt.setInt(3, idProducto);
+                    updateStmt.setInt(4, idFabricante);
+                    updateStmt.executeUpdate();
+                }
+            }
+        }
+    }
+
+    private void asociarProductoConCliente(int idProducto, int idCliente, double precio, String moneda)
+            throws SQLException, IOException {
+        String checkSql = "SELECT 1 FROM productocliente WHERE idProducto = ? AND idCliente = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+
+            checkStmt.setInt(1, idProducto);
+            checkStmt.setInt(2, idCliente);
+
+            ResultSet resultSet = checkStmt.executeQuery();
+
+            if (!resultSet.next()) {
+                // Si no existe la relación, insertar el nuevo registro
+                String insertSql = "INSERT INTO productocliente (idProducto, idCliente, costoventa, monedaventa) VALUES (?, ?, ?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    insertStmt.setInt(1, idProducto);
+                    insertStmt.setInt(2, idCliente);
+                    insertStmt.setDouble(3, precio);
+                    insertStmt.setString(4, moneda);
+                    insertStmt.executeUpdate();
+                }
+            } else {
+                // Si ya existe la relación, actualizarla
+                String updateSql = "UPDATE productocliente SET costoventa = ?, monedaventa = ? WHERE idProducto = ? AND idCliente = ?";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                    updateStmt.setDouble(1, precio);
+                    updateStmt.setString(2, moneda);
+                    updateStmt.setInt(3, idProducto);
+                    updateStmt.setInt(4, idCliente);
+                    updateStmt.executeUpdate();
+                }
+            }
+        }
+    }
+
+    private void asociarProductoConServicio(int idProducto, int idServicio, String moneda)
+            throws SQLException, IOException {
+        String checkSql = "SELECT 1 FROM productoservicio WHERE idProducto = ? AND idServicio = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+
+            checkStmt.setInt(1, idProducto);
+            checkStmt.setInt(2, idServicio);
+
+            ResultSet resultSet = checkStmt.executeQuery();
+
+            if (!resultSet.next()) {
+                // Si no existe la relación, insertar el nuevo registro
+                String insertSql = "INSERT INTO productoservicio (idProducto, idServicio) VALUES (?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    insertStmt.setInt(1, idProducto);
+                    insertStmt.setInt(2, idServicio);
+                    insertStmt.executeUpdate();
+                }
+            }
+        }
+    }
 
     public List<Producto> consultarProductos() throws IOException {
         List<Producto> productos = new ArrayList<>();
@@ -756,9 +757,18 @@ private void asociarProductoConServicio(int idProducto, int idServicio, String m
 
     public void registrarProductosDesdeExcel(File excelFile) {
         try (FileInputStream fis = new FileInputStream(excelFile);
-             Workbook workbook = new XSSFWorkbook(fis)) {
+                Workbook workbook = new XSSFWorkbook(fis)) {
     
             Sheet sheet = workbook.getSheetAt(0);
+    
+            if (sheet.getPhysicalNumberOfRows() == 0) {
+                showAlert("Error", "El archivo Excel está vacío.", Alert.AlertType.ERROR);
+                return;
+            }
+    
+            boolean productosRegistrados = false;
+            boolean errorMostrado = false; // Bandera para controlar la alerta
+    
             for (Row row : sheet) {
                 if (row.getRowNum() == 0)
                     continue;
@@ -907,15 +917,44 @@ private void asociarProductoConServicio(int idProducto, int idServicio, String m
                     registrarProducto(producto, categoriasObj, empresasObj, proveedoresObj, fabricantesObj, clientesObj,
                             serviciosObj, preciosEmpresas, preciosProveedores, preciosFabricantes, preciosClientes, moneda);
     
+                    productosRegistrados = true; // Al menos un producto fue registrado
+    
+                } catch (IndexOutOfBoundsException e) {
+                    // Mostrar solo una vez el error
+                    if (!errorMostrado) {
+                        showAlert("Error", "El archivo Excel tiene una estructura incorrecta. Asegúrese de seguir el formato requerido.", Alert.AlertType.ERROR);
+                        errorMostrado = true;
+                        continue;
+                    }
+                    e.printStackTrace();
                 } catch (IOException | SQLException e) {
                     e.printStackTrace();
+                    showAlert("Error", "Hubo un error al registrar el producto", Alert.AlertType.ERROR);
                 }
             }
+    
+            // Al finalizar, mostrar mensaje dependiendo si se registraron productos
+            if (productosRegistrados) {
+                showAlert("Éxito", "Los productos fueron registrados exitosamente.", Alert.AlertType.INFORMATION);
+            } else {
+                showAlert("Error", "No se registraron productos.", Alert.AlertType.ERROR);
+            }
+    
         } catch (IOException e) {
             e.printStackTrace();
+            showAlert("Error", "No se pudo leer el archivo Excel.", Alert.AlertType.ERROR);
         }
     }
     
+
+    // Método para mostrar las alertas
+    private void showAlert(String title, String message, Alert.AlertType alertType) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
 
     private int verificarYRegistrar(String tabla, String campoId, String campoNombre, String nombre)
             throws SQLException, IOException {
