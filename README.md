@@ -31,7 +31,6 @@ El Sistema Draaisa está diseñado para optimizar la gestión de inventarios, pe
 
 ### Funcionalidades Adicionales:
 - **Inicio de sesión y gestión de cuentas**: Solo el administrador podrá gestionar cuentas de usuario, con diferentes niveles de permisos para agregar, editar, eliminar o consultar registros.
-- **Generación de reportes**: Se podrán generar reportes filtrados o completos para productos, proveedores, clientes, empresas del mercado y prestadores de servicios.
 - **Interfaz de usuario**: El sistema incluirá atajos de teclado para facilitar la navegación y manejo de registros.
 
 ## Especificaciones Técnicas
